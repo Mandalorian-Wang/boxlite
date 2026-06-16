@@ -209,7 +209,7 @@ export const CreateBoxSheet = ({
           <span>Create Box</span>
         </Button>
       </SheetTrigger>
-      <SheetContent className={`w-dvw sm:w-[600px] p-0 flex flex-col gap-0 ${className ?? ''}`}>
+      <SheetContent className={`w-dvw sm:w-[440px] p-0 flex flex-col gap-0 ${className ?? ''}`}>
         <SheetHeader className="border-b border-border p-5 px-6 items-center flex text-left flex-row">
           <SheetTitle className="text-lg font-semibold leading-tight">Create Box</SheetTitle>
           <SheetDescription className="sr-only">Create a new box in your organization.</SheetDescription>
@@ -218,7 +218,7 @@ export const CreateBoxSheet = ({
           <form
             ref={formRef}
             id="create-box-form"
-            className="gap-5 flex flex-col p-5 sm:p-6"
+            className="gap-7 flex flex-col p-5 sm:p-6"
             onSubmit={(e) => {
               e.preventDefault()
               e.stopPropagation()
