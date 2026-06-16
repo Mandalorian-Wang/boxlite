@@ -67,11 +67,19 @@ export function BoxTableHeader({ table, onRefresh, isRefreshing = false, headerA
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[200px] p-0">
               <TableColumnVisibilityToggle
-                columns={table.getAllColumns().filter((column) => ['id'].includes(column.id))}
+                columns={table
+                  .getAllColumns()
+                  .filter((column) => ['state', 'id', 'resources', 'createdAt'].includes(column.id))}
                 getColumnLabel={(id: string) => {
                   switch (id) {
+                    case 'state':
+                      return 'State'
                     case 'id':
                       return 'Box ID'
+                    case 'resources':
+                      return 'Resources'
+                    case 'createdAt':
+                      return 'Created At'
                     default:
                       return id
                   }

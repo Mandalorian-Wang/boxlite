@@ -71,17 +71,21 @@ export function useBoxTable({
   onFiltersChange,
   handleRecover,
 }: UseBoxTableProps) {
-  // Column visibility state management with persistence
+  // Column visibility state management with persistence.
+  // Minimal default (exe.dev-style): only name + last event + actions show; the rest
+  // (id / state / resources / created at) are hidden but toggleable via the View menu.
+  // State still leads the name cell as a status dot regardless of the column's visibility.
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
+    const defaults: VisibilityState = { id: false, state: false, resources: false, createdAt: false, labels: false }
     const saved = getLocalStorageItem(LocalStorageKey.BoxTableColumnVisibility)
     if (saved) {
       try {
-        return { ...JSON.parse(saved), id: true, labels: false }
+        return { ...defaults, ...JSON.parse(saved) }
       } catch {
-        return { id: true, labels: false }
+        return defaults
       }
     }
-    return { id: true, labels: false }
+    return defaults
   })
 
   useEffect(() => {

@@ -15,12 +15,27 @@ interface BoxStateProps {
   errorReason?: string
   recoverable?: boolean
   className?: string
+  iconOnly?: boolean
 }
 
-export function BoxState({ state, errorReason, recoverable, className }: BoxStateProps) {
+export function BoxState({ state, errorReason, recoverable, className, iconOnly }: BoxStateProps) {
   if (!state) return null
   const stateIcon = recoverable ? STATE_ICONS['RECOVERY'] : STATE_ICONS[state] || STATE_ICONS[BoxStateType.UNKNOWN]
   const label = getStateLabel(state)
+
+  if (iconOnly) {
+    const tip = state === BoxStateType.ERROR && errorReason ? errorReason : label
+    return (
+      <Tooltip delayDuration={100}>
+        <TooltipTrigger asChild>
+          <div className={cn('w-4 h-4 flex items-center justify-center flex-shrink-0', className)}>{stateIcon}</div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="max-w-[300px]">{tip}</p>
+        </TooltipContent>
+      </Tooltip>
+    )
+  }
 
   if (state === BoxStateType.ERROR) {
     const errorColor = recoverable ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'

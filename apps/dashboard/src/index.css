@@ -26,7 +26,7 @@ body {
     --accent: 36 22% 93%;
     --accent-foreground: 220 20% 13%;
 
-    --border: 35 13% 82%;
+    --border: 35 11% 86%;
     --input: 35 13% 82%;
     --ring: 220 20% 16%;
 
@@ -124,7 +124,7 @@ body {
   }
 
   html {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   * {

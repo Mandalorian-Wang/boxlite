@@ -819,7 +819,7 @@ const Boxes: React.FC = () => {
         onProgressChange={updateOnboardingProgress}
         progress={onboardingProgress}
       />
-      <PageContent size="full" className="min-h-0 flex-1 gap-3 max-h-[calc(100vh-65px)] pt-4">
+      <PageContent size="content" className="min-h-0 flex-1 gap-3 max-h-[calc(100vh-65px)] pt-4">
         <BoxTable
           boxIsLoading={boxIsLoading}
           boxStateIsTransitioning={boxStateIsTransitioning}

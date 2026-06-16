@@ -126,7 +126,13 @@ export function getColumns({
       cell: ({ row }) => {
         const displayName = getBoxDisplayName(row.original)
         return (
-          <div className="w-full truncate">
+          <div className="flex w-full items-center gap-2 truncate">
+            <BoxStateComponent
+              iconOnly
+              state={row.original.state}
+              errorReason={row.original.errorReason}
+              recoverable={row.original.recoverable}
+            />
             <span className="truncate block">{displayName}</span>
           </div>
         )
@@ -136,7 +142,7 @@ export function getColumns({
       id: 'id',
       size: 140,
       enableSorting: true,
-      enableHiding: false,
+      enableHiding: true,
       header: ({ column }) => {
         return <SortableHeader column={column} label="Box ID" />
       },
@@ -153,7 +159,7 @@ export function getColumns({
       id: 'state',
       size: 120,
       enableSorting: true,
-      enableHiding: false,
+      enableHiding: true,
       header: ({ column }) => {
         return <SortableHeader column={column} label="State" />
       },
@@ -172,7 +178,7 @@ export function getColumns({
       id: 'resources',
       size: 230,
       enableSorting: false,
-      enableHiding: false,
+      enableHiding: true,
       header: () => {
         return <span>Resources</span>
       },
@@ -208,7 +214,7 @@ export function getColumns({
       id: 'createdAt',
       size: 170,
       enableSorting: true,
-      enableHiding: false,
+      enableHiding: true,
       header: ({ column }) => {
         return <SortableHeader column={column} label="Created At" />
       },
