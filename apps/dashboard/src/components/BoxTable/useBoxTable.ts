@@ -36,7 +36,6 @@ interface UseBoxTableProps {
   getWebTerminalUrl: (id: string) => Promise<string | null>
   handleCreateSshAccess: (id: string) => void
   handleRevokeSshAccess: (id: string) => void
-  handleScreenRecordings: (id: string) => void
   pagination: {
     pageIndex: number
     pageSize: number
@@ -61,7 +60,6 @@ export function useBoxTable({
   getWebTerminalUrl,
   handleCreateSshAccess,
   handleRevokeSshAccess,
-  handleScreenRecordings,
   pagination,
   pageCount,
   onPaginationChange,
@@ -109,7 +107,6 @@ export function useBoxTable({
         handleCreateSshAccess,
         handleRevokeSshAccess,
         handleRecover,
-        handleScreenRecordings,
       }),
     [
       handleStart,
@@ -122,7 +119,6 @@ export function useBoxTable({
       handleCreateSshAccess,
       handleRevokeSshAccess,
       handleRecover,
-      handleScreenRecordings,
     ],
   )
 

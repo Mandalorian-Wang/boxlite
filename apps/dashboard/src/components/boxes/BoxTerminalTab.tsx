@@ -8,18 +8,34 @@ import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { BOXLITE_DOCS_URL } from '@/constants/ExternalLinks'
 import { RoutePath } from '@/enums/RoutePath'
+import { useStartBoxMutation } from '@/hooks/mutations/useStartBoxMutation'
 import { useTerminalSessionQuery } from '@/hooks/queries/useTerminalSessionQuery'
 import { useBoxSessionContext } from '@/hooks/useBoxSessionContext'
+import { useSelectedOrganization } from '@/hooks/useSelectedOrganization'
 import { getBoxRouteId } from '@/lib/box-identity'
+import { handleApiError } from '@/lib/error-handling'
 import { isStoppable } from '@/lib/utils/box'
-import { Box } from '@boxlite-ai/api-client'
+import { Box, OrganizationRolePermissionsEnum } from '@boxlite-ai/api-client'
 import { Spinner } from '@/components/ui/spinner'
 import { Play, RefreshCw, TerminalSquare } from 'lucide-react'
+import { toast } from 'sonner'
 import { BoxTerminalFrame } from './BoxTerminalFrame'
 
 export function BoxTerminalTab({ box }: { box: Box }) {
   const running = isStoppable(box)
   const { isTerminalActivated, activateTerminal } = useBoxSessionContext()
+  const { authenticatedUserHasPermission } = useSelectedOrganization()
+  const writePermitted = authenticatedUserHasPermission(OrganizationRolePermissionsEnum.WRITE_BOXES)
+  const startMutation = useStartBoxMutation()
+
+  const handleStart = async () => {
+    try {
+      await startMutation.mutateAsync({ boxId: box.id, detailRef: getBoxRouteId(box) })
+      toast.success('Box started')
+    } catch (error) {
+      handleApiError(error, 'Failed to start box')
+    }
+  }
 
   const [activated, setActivated] = useState(() => isTerminalActivated(box.id))
 
@@ -48,6 +64,12 @@ export function BoxTerminalTab({ box }: { box: Box }) {
                 .
               </EmptyDescription>
             </EmptyHeader>
+            {writePermitted && (
+              <Button onClick={handleStart} disabled={startMutation.isPending}>
+                {startMutation.isPending ? <Spinner className="size-4" /> : <Play className="size-4" />}
+                Start box
+              </Button>
+            )}
           </Empty>
         </div>
       </div>

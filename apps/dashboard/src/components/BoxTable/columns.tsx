@@ -52,7 +52,6 @@ interface GetColumnsProps {
   handleCreateSshAccess: (id: string) => void
   handleRevokeSshAccess: (id: string) => void
   handleRecover: (id: string) => void
-  handleScreenRecordings: (id: string) => void
 }
 
 export function getColumns({
@@ -66,7 +65,6 @@ export function getColumns({
   handleCreateSshAccess,
   handleRevokeSshAccess,
   handleRecover,
-  handleScreenRecordings,
 }: GetColumnsProps): ColumnDef<Box>[] {
   const handleOpenWebTerminal = async (boxId: string) => {
     const url = await getWebTerminalUrl(boxId)
@@ -245,7 +243,6 @@ export function getColumns({
             onCreateSshAccess={handleCreateSshAccess}
             onRevokeSshAccess={handleRevokeSshAccess}
             onRecover={handleRecover}
-            onScreenRecordings={handleScreenRecordings}
           />
         </div>
       ),

@@ -34,7 +34,6 @@ export function BoxTableActions({
   onCreateSshAccess,
   onRevokeSshAccess,
   onRecover,
-  onScreenRecordings,
 }: BoxTableActionsProps) {
   const navigate = useNavigate()
   const isTransitioning = box.state === BoxState.STARTING || box.state === BoxState.STOPPING
@@ -87,12 +86,6 @@ export function BoxTableActions({
           key: 'terminal',
           label: 'Terminal',
           onClick: () => onOpenWebTerminal(box.id),
-          disabled: isLoading,
-        })
-        items.push({
-          key: 'screen-recordings',
-          label: 'Screen Recordings',
-          onClick: () => onScreenRecordings(box.id),
           disabled: isLoading,
         })
         items.push({
@@ -161,7 +154,6 @@ export function BoxTableActions({
     onCreateSshAccess,
     onRevokeSshAccess,
     onRecover,
-    onScreenRecordings,
     navigate,
   ])
 

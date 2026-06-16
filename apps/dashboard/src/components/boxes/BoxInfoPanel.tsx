@@ -19,11 +19,11 @@ interface BoxInfoPanelProps {
   getRegionName: (id: string) => string | undefined
 }
 
-function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
+function MetaCell({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 min-w-0 py-1">
-      <span className="text-xs text-muted-foreground shrink-0">{label}</span>
-      <div className="min-w-0 text-sm text-right truncate">{children}</div>
+    <div className="min-w-0">
+      <div className="mb-1 text-xs text-muted-foreground">{label}</div>
+      <div className="min-w-0 truncate text-sm">{children}</div>
     </div>
   )
 }
@@ -44,42 +44,45 @@ export function BoxInfoPanel({ box, getRegionName }: BoxInfoPanelProps) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-x-12 px-5 py-4 sm:grid-cols-2">
-        <MetaRow label="Box ID">
-          <div className="flex min-w-0 items-center justify-end gap-1">
-            <span className="truncate text-sm">{getBoxPublicIdLabel(box)}</span>
-            {publicBoxId && <CopyButton value={publicBoxId} tooltipText="Copy Box ID" size="icon-xs" />}
-          </div>
-        </MetaRow>
-        <MetaRow label="Image">
+      <div className="space-y-5 px-5 py-4">
+        <MetaCell label="Image">
           {box.image ? (
-            <span className="truncate text-sm" title={box.image}>
+            <span className="block truncate" title={box.image}>
               {box.image}
             </span>
           ) : (
             <span className="text-muted-foreground">—</span>
           )}
-        </MetaRow>
-        <MetaRow label="Region">
-          {region ? <span className="truncate">{region}</span> : <span className="text-muted-foreground">—</span>}
-        </MetaRow>
-        <MetaRow label="Resources">
-          <div className="flex flex-wrap justify-end gap-1.5">
-            <ResourceChip resource="cpu" value={box.cpu} />
-            <ResourceChip resource="memory" value={box.memory} />
-            <ResourceChip resource="disk" value={box.disk} />
-          </div>
-        </MetaRow>
-        <MetaRow label="Created">
-          <TimestampTooltip timestamp={box.createdAt}>
-            <span>{getRelativeTimeString(box.createdAt).relativeTimeString}</span>
-          </TimestampTooltip>
-        </MetaRow>
-        <MetaRow label="Last event">
-          <TimestampTooltip timestamp={box.updatedAt}>
-            <span>{getRelativeTimeString(box.updatedAt).relativeTimeString}</span>
-          </TimestampTooltip>
-        </MetaRow>
+        </MetaCell>
+
+        <div className="grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-3">
+          <MetaCell label="Box ID">
+            <div className="flex min-w-0 items-center gap-1">
+              <span className="truncate">{getBoxPublicIdLabel(box)}</span>
+              {publicBoxId && <CopyButton value={publicBoxId} tooltipText="Copy Box ID" size="icon-xs" />}
+            </div>
+          </MetaCell>
+          <MetaCell label="Region">
+            {region ? region : <span className="text-muted-foreground">—</span>}
+          </MetaCell>
+          <MetaCell label="Resources">
+            <div className="flex flex-wrap gap-1.5">
+              <ResourceChip resource="cpu" value={box.cpu} />
+              <ResourceChip resource="memory" value={box.memory} />
+              <ResourceChip resource="disk" value={box.disk} />
+            </div>
+          </MetaCell>
+          <MetaCell label="Created">
+            <TimestampTooltip timestamp={box.createdAt}>
+              <span>{getRelativeTimeString(box.createdAt).relativeTimeString}</span>
+            </TimestampTooltip>
+          </MetaCell>
+          <MetaCell label="Last event">
+            <TimestampTooltip timestamp={box.updatedAt}>
+              <span>{getRelativeTimeString(box.updatedAt).relativeTimeString}</span>
+            </TimestampTooltip>
+          </MetaCell>
+        </div>
       </div>
 
       {labelEntries.length > 0 && (

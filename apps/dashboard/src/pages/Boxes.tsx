@@ -661,26 +661,6 @@ const Boxes: React.FC = () => {
     [getPortPreviewUrl],
   )
 
-  const handleScreenRecordings = async (id: string) => {
-    // Check if box is started
-    const box = boxesData?.items?.find((s) => s.id === id)
-    if (!box || box.state !== BoxState.STARTED) {
-      toast.error('Box must be started to access Screen Recordings')
-      return
-    }
-
-    setBoxIsLoading((prev) => ({ ...prev, [id]: true }))
-    try {
-      const portPreviewUrl = await getPortPreviewUrl(id, 33333)
-      window.open(portPreviewUrl, '_blank')
-      toast.success('Opening Screen Recordings dashboard...')
-    } catch (error) {
-      handleApiError(error, 'Failed to open Screen Recordings')
-    } finally {
-      setBoxIsLoading((prev) => ({ ...prev, [id]: false }))
-    }
-  }
-
   const handleCreateSshAccess = async (id: string) => {
     setBoxIsLoading((prev) => ({ ...prev, [id]: true }))
     try {
@@ -838,7 +818,6 @@ const Boxes: React.FC = () => {
           filters={filters}
           onFiltersChange={handleFiltersChange}
           handleRecover={handleRecover}
-          handleScreenRecordings={handleScreenRecordings}
           headerAction={
             authenticatedUserHasPermission(OrganizationRolePermissionsEnum.WRITE_BOXES) ? (
               <CreateBoxSheet

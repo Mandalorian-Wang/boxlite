@@ -54,7 +54,6 @@ export function BoxTable({
   getWebTerminalUrl,
   handleCreateSshAccess,
   handleRevokeSshAccess,
-  handleScreenRecordings,
   onRowClick,
   pagination,
   pageCount,
@@ -84,7 +83,6 @@ export function BoxTable({
     getWebTerminalUrl,
     handleCreateSshAccess,
     handleRevokeSshAccess,
-    handleScreenRecordings,
     pagination,
     pageCount,
     onPaginationChange,
@@ -259,7 +257,6 @@ export function BoxTable({
                           onCreateSshAccess={handleCreateSshAccess}
                           onRevokeSshAccess={handleRevokeSshAccess}
                           onRecover={handleRecover}
-                          onScreenRecordings={handleScreenRecordings}
                         />
                       </div>
                     </div>

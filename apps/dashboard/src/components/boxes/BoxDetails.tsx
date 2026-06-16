@@ -26,7 +26,6 @@ import { useRecoverBoxMutation } from '@/hooks/mutations/useRecoverBoxMutation'
 import { useStartBoxMutation } from '@/hooks/mutations/useStartBoxMutation'
 import { useStopBoxMutation } from '@/hooks/mutations/useStopBoxMutation'
 import { useBoxQuery } from '@/hooks/queries/useBoxQuery'
-import { useApi } from '@/hooks/useApi'
 import { useConfig } from '@/hooks/useConfig'
 import { useRegions } from '@/hooks/useRegions'
 import { useBoxWsSync } from '@/hooks/useBoxWsSync'
@@ -42,7 +41,7 @@ import {
   readOnboardingProgress,
   type OnboardingProgress,
 } from '@/lib/onboarding-progress'
-import { isStoppable, isTransitioning } from '@/lib/utils/box'
+import { isTransitioning } from '@/lib/utils/box'
 import { OrganizationRolePermissionsEnum, OrganizationUserRoleEnum } from '@boxlite-ai/api-client'
 import { isAxiosError } from 'axios'
 import { Container, RefreshCw } from 'lucide-react'
@@ -66,7 +65,6 @@ export default function BoxDetails() {
   const config = useConfig()
   const { user } = useAuth()
   const userId = user?.profile.sub
-  const { boxApi } = useApi()
   const { authenticatedUserOrganizationMember, selectedOrganization, authenticatedUserHasPermission } =
     useSelectedOrganization()
   const { getRegionName } = useRegions()
@@ -235,20 +233,6 @@ export default function BoxDetails() {
     }
   }
 
-  const handleScreenRecordings = async () => {
-    if (!box || !isStoppable(box)) {
-      toast.error('Box must be started to access Screen Recordings')
-      return
-    }
-    try {
-      const response = await boxApi.getSignedPortPreviewUrl(box.id, 33333, selectedOrganization?.id)
-      window.open(response.data.url, '_blank', 'noopener,noreferrer')
-      toast.success('Opening Screen Recordings dashboard...')
-    } catch (error) {
-      handleApiError(error, 'Failed to open Screen Recordings')
-    }
-  }
-
   return (
     <PageLayout className="h-[var(--app-content-height,calc(100svh_-_3.5rem))] overflow-hidden">
       <OnboardingGuideDialog
@@ -278,7 +262,6 @@ export default function BoxDetails() {
         onBack={() => navigate(RoutePath.BOXES)}
         onCreateSshAccess={() => setCreateSshDialogOpen(true)}
         onRevokeSshAccess={() => setRevokeSshDialogOpen(true)}
-        onScreenRecordings={handleScreenRecordings}
         mutations={{
           start: startMutation.isPending,
           stop: stopMutation.isPending,

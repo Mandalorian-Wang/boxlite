@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
-import { getBoxDisplayName, getBoxPublicId, getBoxPublicIdLabel } from '@/lib/box-identity'
+import { getBoxDisplayName } from '@/lib/box-identity'
 import { isRecoverable, isSshAccessible, isStartable, isStoppable } from '@/lib/utils/box'
 import { Box } from '@boxlite-ai/api-client'
 import { ArrowLeft, MoreHorizontal, Play, RefreshCw, Square, Terminal, Wrench } from 'lucide-react'
@@ -37,7 +37,6 @@ interface BoxHeaderProps {
   onBack: () => void
   onCreateSshAccess: () => void
   onRevokeSshAccess: () => void
-  onScreenRecordings: () => void
   mutations: {
     start: boolean
     stop: boolean
@@ -60,11 +59,8 @@ export function BoxHeader({
   onBack,
   onCreateSshAccess,
   onRevokeSshAccess,
-  onScreenRecordings,
   mutations,
 }: BoxHeaderProps) {
-  const publicBoxId = box ? getBoxPublicId(box) : ''
-
   return (
     <div className="border-b border-border shrink-0">
       <div className="mx-auto flex w-full max-w-[1040px] flex-wrap items-center justify-between gap-x-4 gap-y-2 min-w-0 px-4 sm:px-5 2xl:px-0 py-1.5 sm:py-2">
@@ -75,13 +71,9 @@ export function BoxHeader({
         {isLoading ? (
           <BoxHeaderSkeleton />
         ) : box ? (
-          <div className="flex items-center gap-1.5 min-w-0">
+          <div className="flex items-center gap-1 min-w-0">
             <h2 className="text-base font-medium truncate">{getBoxDisplayName(box)}</h2>
             <CopyButton value={getBoxDisplayName(box)} tooltipText="Copy name" size="icon-xs" />
-            <span className="hidden sm:inline text-xs text-muted-foreground truncate">
-              {getBoxPublicIdLabel(box)}
-            </span>
-            {publicBoxId && <CopyButton value={publicBoxId} tooltipText="Copy Box ID" size="icon-xs" />}
           </div>
         ) : null}
       </div>
@@ -96,7 +88,7 @@ export function BoxHeader({
           </div>
         ) : box ? (
           <>
-            <BoxState state={box.state} errorReason={box.errorReason} recoverable={box.recoverable} />
+            <BoxState pill state={box.state} errorReason={box.errorReason} recoverable={box.recoverable} />
             <div className="flex items-center gap-2">
               {writePermitted && (
                 <ButtonGroup>
@@ -140,10 +132,6 @@ export function BoxHeader({
                       <DropdownMenuGroup>
                         <DropdownMenuItem onClick={onRevokeSshAccess} disabled={actionsDisabled}>
                           Revoke SSH Access
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={onScreenRecordings} disabled={actionsDisabled}>
-                          Screen Recordings
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
                       {deletePermitted && (

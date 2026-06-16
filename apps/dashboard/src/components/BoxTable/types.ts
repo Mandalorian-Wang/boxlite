@@ -42,7 +42,6 @@ export interface BoxTableProps {
   filters: BoxFilters
   onFiltersChange: (filters: BoxFilters) => void
   handleRecover: (id: string) => void
-  handleScreenRecordings: (id: string) => void
   headerAction?: ReactNode
 }
 
@@ -59,7 +58,6 @@ export interface BoxTableActionsProps {
   onCreateSshAccess: (id: string) => void
   onRevokeSshAccess: (id: string) => void
   onRecover: (id: string) => void
-  onScreenRecordings: (id: string) => void
 }
 
 export interface BoxTableHeaderProps {
