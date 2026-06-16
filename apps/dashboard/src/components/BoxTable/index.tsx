@@ -276,7 +276,7 @@ export function BoxTable({
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border/60 bg-card shadow-card">
           <Table
-            className="min-w-[680px] border-separate border-spacing-0 [&_tbody_td]:py-1"
+            className="min-w-[680px] border-separate border-spacing-0 [&_tbody_td]:py-1 [&_th:first-child]:pl-5 [&_td:first-child]:pl-5 [&_th:last-child]:pr-5 [&_td:last-child]:pr-5"
             style={{ tableLayout: 'fixed' }}
           >
             <TableHeader>
@@ -288,7 +288,7 @@ export function BoxTable({
                         key={header.id}
                         data-state={header.column.getCanSort() && 'sortable'}
                         className={cn(
-                          'sticky top-0 z-[3] border-b border-border/60 bg-card',
+                          'sticky top-0 z-[3] border-b border-border/40 bg-card',
                           header.column.getCanSort() ? 'hover:bg-muted' : '',
                         )}
                         style={{

@@ -290,7 +290,7 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
   return (
     <header
       className={cn(
-        'sticky z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/88',
+        'sticky z-40 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/88',
         isBannerVisible ? 'top-16 md:top-12' : 'top-0',
       )}
     >
