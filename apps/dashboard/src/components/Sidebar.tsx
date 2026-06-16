@@ -210,11 +210,6 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
         label: 'Boxes',
         path: RoutePath.BOXES,
       },
-      {
-        icon: <ReceiptText size={16} strokeWidth={1.5} />,
-        label: 'Billing',
-        path: RoutePath.BILLING,
-      },
       ...(canViewAdmin
         ? [
             {
@@ -467,6 +462,12 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
                   </Link>
                 </DropdownMenuItem>
               )}
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link to={RoutePath.BILLING}>
+                  <ReceiptText className="size-4" />
+                  Billing
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild className="cursor-pointer">
                 <a href={BOXLITE_DOCS_URL} target="_blank" rel="noopener noreferrer">
                   <BookOpen className="size-4" />
