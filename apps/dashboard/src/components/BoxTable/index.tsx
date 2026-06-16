@@ -189,7 +189,7 @@ export function BoxTable({
             ))}
           </div>
         ) : table.getRowModel().rows?.length ? (
-          <div className="overflow-hidden rounded-xl border border-border/40 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.05),0_12px_32px_-10px_rgba(0,0,0,0.14)]">
+          <div className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-card">
             {table.getRowModel().rows.map((row) => {
               const box = row.original
               const lastEvent = getBoxLastEvent(box)
@@ -274,7 +274,7 @@ export function BoxTable({
           </div>
         )
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border/40 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.05),0_12px_32px_-10px_rgba(0,0,0,0.14)]">
+        <div className="overflow-x-auto rounded-xl border border-border/60 bg-card shadow-card">
           <Table
             className="min-w-[680px] border-separate border-spacing-0 [&_tbody_td]:py-1"
             style={{ tableLayout: 'fixed' }}

@@ -34,7 +34,7 @@ export function BoxInfoPanel({ box, getRegionName }: BoxInfoPanelProps) {
   const labelEntries = Object.entries(box.labels ?? {})
 
   return (
-    <div className="rounded-lg border border-border bg-card">
+    <div className="rounded-xl border border-border/60 bg-card shadow-card">
       {box.errorReason && (
         <div className="px-5 pt-4">
           <Alert variant={box.recoverable ? 'warning' : 'destructive'}>

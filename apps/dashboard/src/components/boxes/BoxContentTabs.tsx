@@ -25,7 +25,8 @@ interface BoxContentTabsProps {
 
 // Bounded surface so the terminal / observability tabs render with real height
 // inside the detail page's centered scrolling column.
-const TAB_SHELL = 'flex flex-col h-[60vh] min-h-[440px] gap-0 overflow-hidden rounded-lg border border-border bg-card'
+const TAB_SHELL =
+  'flex flex-col h-[60vh] min-h-[440px] gap-0 overflow-hidden rounded-xl border border-border/60 bg-card shadow-card'
 
 export function BoxContentTabs({ box, isLoading, experimentsEnabled, tab, onTabChange }: BoxContentTabsProps) {
   const availableTabs = getBoxContentTabs({ experimentsEnabled })
