@@ -6,10 +6,8 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useRegions } from '@/hooks/useRegions'
 import { getBoxContentTabs } from '@/lib/dashboard-features'
 import { Box } from '@boxlite-ai/api-client'
-import { BoxInfoPanel } from './BoxInfoPanel'
 import { BoxLogsTab } from './BoxLogsTab'
 import { BoxMetricsTab } from './BoxMetricsTab'
 import { BoxSpendingTab } from './BoxSpendingTab'
@@ -25,16 +23,18 @@ interface BoxContentTabsProps {
   onTabChange: (tab: TabValue) => void
 }
 
+// Bounded surface so the terminal / observability tabs render with real height
+// inside the detail page's centered scrolling column.
+const TAB_SHELL = 'flex flex-col h-[60vh] min-h-[440px] gap-0 overflow-hidden rounded-lg border border-border bg-card'
+
 export function BoxContentTabs({ box, isLoading, experimentsEnabled, tab, onTabChange }: BoxContentTabsProps) {
-  const { getRegionName } = useRegions()
   const availableTabs = getBoxContentTabs({ experimentsEnabled })
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-full">
+      <div className={TAB_SHELL}>
         <div className="flex items-center gap-0 border-b border-border h-[41px] px-4 shrink-0">
-          <Skeleton className="h-4 w-16 lg:hidden" />
-          <Skeleton className="h-4 w-10 ml-4 lg:ml-0" />
+          <Skeleton className="h-4 w-10" />
           <Skeleton className="h-4 w-12 ml-4" />
           <Skeleton className="h-4 w-14 ml-4" />
           <Skeleton className="h-4 w-16 ml-4" />
@@ -50,13 +50,8 @@ export function BoxContentTabs({ box, isLoading, experimentsEnabled, tab, onTabC
   if (!box) return null
 
   return (
-    <Tabs value={tab} onValueChange={(v) => onTabChange(v as TabValue)} className="flex flex-col h-full gap-0">
-      <TabsList variant="underline" className="h-[41px] overflow-x-auto overflow-y-hidden scrollbar-sm">
-        {availableTabs.includes('overview') && (
-          <TabsTrigger value="overview" className="lg:hidden">
-            Overview
-          </TabsTrigger>
-        )}
+    <Tabs value={tab} onValueChange={(v) => onTabChange(v as TabValue)} className={TAB_SHELL}>
+      <TabsList variant="underline" className="h-[41px] shrink-0 overflow-x-auto overflow-y-hidden scrollbar-sm">
         {experimentsEnabled &&
           availableTabs.some((value) => ['logs', 'traces', 'metrics', 'spending'].includes(value)) && (
             <>
@@ -69,9 +64,6 @@ export function BoxContentTabs({ box, isLoading, experimentsEnabled, tab, onTabC
         <TabsTrigger value="terminal">Terminal</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="overview" className="flex-1 min-h-0 m-0 overflow-y-auto scrollbar-sm lg:hidden">
-        <BoxInfoPanel box={box} getRegionName={getRegionName} />
-      </TabsContent>
       {experimentsEnabled && (
         <>
           <TabsContent value="logs" className="flex-1 min-h-0 m-0 data-[state=active]:flex flex-col overflow-hidden">

@@ -74,16 +74,13 @@ export function BoxHeader({
         {isLoading ? (
           <BoxHeaderSkeleton />
         ) : box ? (
-          <div className="min-w-0">
-            <div className="flex items-center gap-1 min-w-0">
-              <h2 className="text-base font-medium truncate">{getBoxDisplayName(box)}</h2>
-              <CopyButton value={getBoxDisplayName(box)} tooltipText="Copy name" size="icon-xs" />
-            </div>
-            <div className="hidden sm:flex items-center gap-1 min-w-0">
-              <span className="text-xs text-muted-foreground shrink-0">Box ID</span>
-              <span className="text-sm text-muted-foreground font-mono truncate">{getBoxPublicIdLabel(box)}</span>
-              {publicBoxId && <CopyButton value={publicBoxId} tooltipText="Copy Box ID" size="icon-xs" />}
-            </div>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <h2 className="text-base font-medium truncate">{getBoxDisplayName(box)}</h2>
+            <CopyButton value={getBoxDisplayName(box)} tooltipText="Copy name" size="icon-xs" />
+            <span className="hidden sm:inline font-mono text-xs text-muted-foreground truncate">
+              {getBoxPublicIdLabel(box)}
+            </span>
+            {publicBoxId && <CopyButton value={publicBoxId} tooltipText="Copy Box ID" size="icon-xs" />}
           </div>
         ) : null}
       </div>
@@ -182,13 +179,9 @@ export function BoxHeader({
 
 function BoxHeaderSkeleton() {
   return (
-    <div className="flex flex-col gap-1">
-      <div className="h-6 flex items-center">
-        <Skeleton className="h-4 w-40" />
-      </div>
-      <div className="h-6 flex items-center">
-        <Skeleton className="h-3.5 w-52" />
-      </div>
+    <div className="flex items-center gap-2">
+      <Skeleton className="h-4 w-40" />
+      <Skeleton className="h-3.5 w-28" />
     </div>
   )
 }

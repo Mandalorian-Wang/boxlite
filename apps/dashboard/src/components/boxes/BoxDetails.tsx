@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { FeatureFlags } from '@/enums/FeatureFlags'
 import { LocalStorageKey } from '@/enums/LocalStorageKey'
 import { RoutePath } from '@/enums/RoutePath'
@@ -29,7 +28,6 @@ import { useStopBoxMutation } from '@/hooks/mutations/useStopBoxMutation'
 import { useBoxQuery } from '@/hooks/queries/useBoxQuery'
 import { useApi } from '@/hooks/useApi'
 import { useConfig } from '@/hooks/useConfig'
-import { useMatchMedia } from '@/hooks/useMatchMedia'
 import { useRegions } from '@/hooks/useRegions'
 import { useBoxWsSync } from '@/hooks/useBoxWsSync'
 import { useSelectedOrganization } from '@/hooks/useSelectedOrganization'
@@ -48,12 +46,11 @@ import {
 import { isStoppable, isTransitioning } from '@/lib/utils/box'
 import { OrganizationRolePermissionsEnum, OrganizationUserRoleEnum } from '@boxlite-ai/api-client'
 import { isAxiosError } from 'axios'
-import { Code2, Container, GripVertical, ListChecks, RefreshCw } from 'lucide-react'
+import { Code2, Container, ListChecks, RefreshCw } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useFeatureFlagEnabled } from 'posthog-js/react'
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
-import { Group, Panel, Separator } from 'react-resizable-panels'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { CreateSshAccessDialog } from './CreateSshAccessDialog'
@@ -83,7 +80,6 @@ export default function BoxDetails() {
   const [showOnboardingDialog, setShowOnboardingDialog] = useState(false)
   const [onboardingProgress, setOnboardingProgress] = useState<OnboardingProgress>(() => readOnboardingProgress(userId))
   const [tab, setTab] = useQueryState('tab', tabParser)
-  const isDesktop = useMatchMedia('(min-width: 1024px)')
 
   const updateOnboardingProgress = useCallback(
     (progress: OnboardingProgress) => {
@@ -147,12 +143,12 @@ export default function BoxDetails() {
     }, 220)
   }, [clearOnboardingUrlParam, userId])
 
-  // On desktop (lg+), the overview tab is hidden in the sidebar, so switch to a content tab
+  // Overview now renders inline above the tabs, so it is no longer a selectable tab.
   useEffect(() => {
-    if (isDesktop && tab === 'overview') {
+    if (tab === 'overview') {
       setTab(experimentsEnabled ? 'logs' : 'terminal')
     }
-  }, [isDesktop, tab, setTab, experimentsEnabled])
+  }, [tab, setTab, experimentsEnabled])
 
   // Coerce hidden tabs back to a supported default.
   useEffect(() => {
@@ -294,32 +290,6 @@ export default function BoxDetails() {
         }}
       />
 
-      {showOnboardingNudge && (
-        <div className="shrink-0 border-b border-border bg-card px-4 py-3 sm:px-5">
-          <div className="mx-auto flex max-w-[1440px] flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex min-w-0 flex-1 items-start gap-3">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                <ListChecks className="size-4" />
-              </span>
-              <div className="min-w-0">
-                <div className="text-sm font-semibold">Connect with the SDK</div>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1">
-                    <Code2 className="size-3.5" />
-                    Generate an API key and run the SDK example.
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 sm:justify-end">
-              <Button type="button" size="sm" onClick={() => setShowOnboardingDialog(true)}>
-                Open SDK guide
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {isNotFound ? (
         <div className="flex flex-1 min-h-0 items-center justify-center">
           <Empty>
@@ -336,39 +306,42 @@ export default function BoxDetails() {
           </Empty>
         </div>
       ) : (
-        <Group orientation="horizontal" className="flex flex-1 min-h-0 overflow-hidden">
-          {isDesktop && (
-            <>
-              <Panel
-                id="overview"
-                minSize={250}
-                maxSize={550}
-                defaultSize={320}
-                className="flex flex-col overflow-hidden bg-card"
-              >
-                <div className="flex items-center px-5 border-b border-border shrink-0 h-[41px]">
-                  <span className="text-sm font-medium">Overview</span>
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-4 px-4 py-5 sm:px-5">
+            {showOnboardingNudge && (
+              <div className="flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                    <ListChecks className="size-4" />
+                  </span>
+                  <div className="min-w-0 text-sm">
+                    <span className="font-medium">Connect with the SDK</span>
+                    <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                      <Code2 className="size-3.5" />
+                      Generate an API key and run the SDK example.
+                    </span>
+                  </div>
                 </div>
-                <ScrollArea fade="mask" className="flex-1 min-h-0">
-                  {isLoading ? (
-                    <InfoPanelSkeleton />
-                  ) : isError || !box ? (
-                    <div className="flex flex-col items-center justify-center gap-3 p-8 text-center text-muted-foreground">
-                      <p className="text-sm">Failed to load box details.</p>
-                      <Button variant="outline" size="sm" onClick={() => refetch()}>
-                        <RefreshCw className="size-4" />
-                        Retry
-                      </Button>
-                    </div>
-                  ) : (
-                    <BoxInfoPanel box={box} getRegionName={getRegionName} />
-                  )}
-                </ScrollArea>
-              </Panel>
-              <ResizableSeparator />
-            </>
-          )}
-          <Panel id="content" className="flex-1 min-w-0 flex flex-col overflow-hidden">
+                <Button type="button" variant="outline" size="sm" onClick={() => setShowOnboardingDialog(true)}>
+                  Open SDK guide
+                </Button>
+              </div>
+            )}
+
+            {isLoading ? (
+              <InfoPanelSkeleton />
+            ) : isError || !box ? (
+              <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border p-8 text-center text-muted-foreground">
+                <p className="text-sm">Failed to load box details.</p>
+                <Button variant="outline" size="sm" onClick={() => refetch()}>
+                  <RefreshCw className="size-4" />
+                  Retry
+                </Button>
+              </div>
+            ) : (
+              <BoxInfoPanel box={box} getRegionName={getRegionName} />
+            )}
+
             <BoxContentTabs
               box={box}
               isLoading={isLoading}
@@ -376,8 +349,8 @@ export default function BoxDetails() {
               tab={tab}
               onTabChange={setTab}
             />
-          </Panel>
-        </Group>
+          </div>
+        </div>
       )}
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -404,15 +377,5 @@ export default function BoxDetails() {
         </>
       )}
     </PageLayout>
-  )
-}
-
-function ResizableSeparator() {
-  return (
-    <Separator className="group relative flex w-px items-center justify-center bg-transparent text-muted-foreground focus-visible:outline-none after:absolute after:inset-y-0 after:left-1/2 after:w-px after:-translate-x-1/2 after:bg-border after:transition-colors data-[separator=hover]:text-primary data-[separator=hover]:after:bg-primary data-[separator=active]:text-primary data-[separator=active]:after:bg-primary focus-visible:text-primary">
-      <div className="z-10 flex h-6 w-3.5 items-center justify-center rounded-sm border border-border bg-background transition-colors group-data-[separator=hover]:border-current group-data-[separator=active]:border-current group-focus-visible:border-current">
-        <GripVertical className="size-3 text-current" />
-      </div>
-    </Separator>
   )
 }
