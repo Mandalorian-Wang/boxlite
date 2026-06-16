@@ -63,7 +63,7 @@ export function BoxInfoPanel({ box, getRegionName }: BoxInfoPanelProps) {
             </div>
           </MetaCell>
           <MetaCell label="Region">
-            {region ? region : <span className="text-muted-foreground">—</span>}
+            {region ? <span className="uppercase">{region}</span> : <span className="text-muted-foreground">—</span>}
           </MetaCell>
           <MetaCell label="Resources">
             <div className="flex flex-wrap gap-1.5">

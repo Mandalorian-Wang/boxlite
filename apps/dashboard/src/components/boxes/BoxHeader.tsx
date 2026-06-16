@@ -71,10 +71,13 @@ export function BoxHeader({
         {isLoading ? (
           <BoxHeaderSkeleton />
         ) : box ? (
-          <div className="flex items-center gap-1 min-w-0">
-            <h2 className="text-base font-medium truncate">{getBoxDisplayName(box)}</h2>
-            <CopyButton value={getBoxDisplayName(box)} tooltipText="Copy name" size="icon-xs" />
-          </div>
+          <>
+            <div className="flex items-center gap-1 min-w-0">
+              <h2 className="text-base font-medium truncate">{getBoxDisplayName(box)}</h2>
+              <CopyButton value={getBoxDisplayName(box)} tooltipText="Copy name" size="icon-xs" />
+            </div>
+            <BoxState pill state={box.state} errorReason={box.errorReason} recoverable={box.recoverable} />
+          </>
         ) : null}
       </div>
 
@@ -88,7 +91,6 @@ export function BoxHeader({
           </div>
         ) : box ? (
           <>
-            <BoxState pill state={box.state} errorReason={box.errorReason} recoverable={box.recoverable} />
             <div className="flex items-center gap-2">
               {writePermitted && (
                 <ButtonGroup>

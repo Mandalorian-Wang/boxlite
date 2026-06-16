@@ -325,7 +325,9 @@ export function BoxTable({
                       <TableCell
                         key={cell.id}
                         onClick={(e) => {
-                          if (cell.column.id === 'select' || cell.column.id === 'actions') {
+                          // Only the checkbox cell swallows the click; the actions cell lets the
+                          // empty space around the (self-stopping) buttons still open the row.
+                          if (cell.column.id === 'select') {
                             e.stopPropagation()
                           }
                         }}
