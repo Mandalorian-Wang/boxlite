@@ -66,8 +66,9 @@ export function BoxHeader({
   const publicBoxId = box ? getBoxPublicId(box) : ''
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 min-w-0 px-4 sm:px-5 py-1.5 sm:py-2 border-b border-border shrink-0">
-      <div className="flex items-center gap-2 min-w-0">
+    <div className="border-b border-border shrink-0">
+      <div className="mx-auto flex w-full max-w-[1040px] flex-wrap items-center justify-between gap-x-4 gap-y-2 min-w-0 px-4 sm:px-5 2xl:px-0 py-1.5 sm:py-2">
+        <div className="flex items-center gap-2 min-w-0">
         <Button variant="ghost" size="icon-sm" className="shrink-0" onClick={onBack}>
           <ArrowLeft className="size-4" />
         </Button>
@@ -172,6 +173,7 @@ export function BoxHeader({
             </div>
           </>
         ) : null}
+        </div>
       </div>
     </div>
   )
