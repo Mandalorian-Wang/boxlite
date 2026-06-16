@@ -37,7 +37,6 @@ import { setLocalStorageItem } from '@/lib/local-storage'
 import {
   ONBOARDING_ENTRY_HIGHLIGHT_EVENT,
   ONBOARDING_OPEN_EVENT,
-  getOnboardingCoreProgress,
   mergeOnboardingProgress,
   ONBOARDING_PROGRESS_EVENT,
   readOnboardingProgress,
@@ -46,7 +45,7 @@ import {
 import { isStoppable, isTransitioning } from '@/lib/utils/box'
 import { OrganizationRolePermissionsEnum, OrganizationUserRoleEnum } from '@boxlite-ai/api-client'
 import { isAxiosError } from 'axios'
-import { Code2, Container, ListChecks, RefreshCw } from 'lucide-react'
+import { Container, RefreshCw } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useFeatureFlagEnabled } from 'posthog-js/react'
 import { useCallback, useEffect, useState } from 'react'
@@ -159,9 +158,6 @@ export default function BoxDetails() {
 
   const { data: box, isLoading, isError, error, refetch, isFetching } = useBoxQuery(boxId ?? '')
   const isNotFound = isError && isAxiosError(error.cause) && error.cause?.status === 404
-  const onboardingCoreProgress = getOnboardingCoreProgress(onboardingProgress)
-  const showOnboardingNudge = Boolean(box && !onboardingCoreProgress.isComplete)
-
   useBoxWsSync({ boxId })
 
   useEffect(() => {
@@ -308,26 +304,6 @@ export default function BoxDetails() {
       ) : (
         <div className="flex-1 min-h-0 overflow-y-auto">
           <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-4 px-4 py-5 sm:px-5">
-            {showOnboardingNudge && (
-              <div className="flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center">
-                <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                    <ListChecks className="size-4" />
-                  </span>
-                  <div className="min-w-0 text-sm">
-                    <span className="font-medium">Connect with the SDK</span>
-                    <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
-                      <Code2 className="size-3.5" />
-                      Generate an API key and run the SDK example.
-                    </span>
-                  </div>
-                </div>
-                <Button type="button" variant="outline" size="sm" onClick={() => setShowOnboardingDialog(true)}>
-                  Open SDK guide
-                </Button>
-              </div>
-            )}
-
             {isLoading ? (
               <InfoPanelSkeleton />
             ) : isError || !box ? (

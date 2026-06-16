@@ -9,7 +9,7 @@ import { TimestampTooltip } from '@/components/TimestampTooltip'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { getBoxPublicId, getBoxPublicIdLabel } from '@/lib/box-identity'
-import { formatDuration, getRelativeTimeString } from '@/lib/utils'
+import { getRelativeTimeString } from '@/lib/utils'
 import { Box } from '@boxlite-ai/api-client'
 import { AlertCircle } from 'lucide-react'
 import React from 'react'
@@ -69,24 +69,6 @@ export function BoxInfoPanel({ box, getRegionName }: BoxInfoPanelProps) {
             <ResourceChip resource="memory" value={box.memory} />
             <ResourceChip resource="disk" value={box.disk} />
           </div>
-        </MetaRow>
-        <MetaRow label="Auto-stop">
-          {box.autoStopInterval ? (
-            formatDuration(box.autoStopInterval)
-          ) : (
-            <span className="text-muted-foreground">Disabled</span>
-          )}
-        </MetaRow>
-        <MetaRow label="Auto-delete">
-          {box.autoDeleteInterval !== undefined && box.autoDeleteInterval >= 0 ? (
-            box.autoDeleteInterval === 0 ? (
-              'On stop'
-            ) : (
-              formatDuration(box.autoDeleteInterval)
-            )
-          ) : (
-            <span className="text-muted-foreground">Disabled</span>
-          )}
         </MetaRow>
         <MetaRow label="Created">
           <TimestampTooltip timestamp={box.createdAt}>
