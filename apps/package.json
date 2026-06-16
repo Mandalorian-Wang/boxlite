@@ -8,6 +8,7 @@
     "start": "node scripts/start-dashboard.mjs",
     "clickstack:cloud": "node scripts/clickstack-cloud.mjs",
     "start:dev": "node scripts/start-dashboard.mjs --target=dev",
+    "start:prod": "node scripts/start-dashboard.mjs --target=prod",
     "start:mock": "node scripts/start-dashboard.mjs --target=mock",
     "start:local": "node scripts/start-dashboard.mjs --target=local",
     "start:dex": "node scripts/start-dashboard.mjs --target=dex",
