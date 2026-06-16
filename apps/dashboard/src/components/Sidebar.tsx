@@ -5,7 +5,6 @@
  */
 
 import { LogoText } from '@/assets/Logo'
-import { OrganizationPicker } from '@/components/Organizations/OrganizationPicker'
 import { Button } from '@/components/ui/button'
 import { Kbd } from '@/components/ui/kbd'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -23,6 +22,9 @@ import { Theme, useTheme } from '@/contexts/ThemeContext'
 import { RoutePath } from '@/enums/RoutePath'
 import { useApi } from '@/hooks/useApi'
 import { useIsCompactScreen } from '@/hooks/use-mobile'
+import { useSelectedOrganization } from '@/hooks/useSelectedOrganization'
+import { useCopyToClipboard } from 'usehooks-ts'
+import { toast } from 'sonner'
 import {
   ONBOARDING_OPEN_EVENT,
   ONBOARDING_ENTRY_HIGHLIGHT_EVENT,
@@ -35,8 +37,10 @@ import { cn, getMetaKey } from '@/lib/utils'
 import {
   ArrowRightIcon,
   BookOpen,
+  Building2,
   ChevronDown,
   Container,
+  Copy,
   KeyRound,
   ListChecks,
   LogOut,
@@ -142,6 +146,22 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
   const userId = user?.profile.sub
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const { selectedOrganization } = useSelectedOrganization()
+  const [, copyToClipboard] = useCopyToClipboard()
+  const orgDisplayName = selectedOrganization?.name || 'Default Organization'
+  const copyOrgId = useCallback(() => {
+    if (!selectedOrganization) return
+    copyToClipboard(selectedOrganization.id)
+    toast.success('Organization ID copied to clipboard')
+  }, [copyToClipboard, selectedOrganization])
+  const orgCommands = useMemo<CommandConfig[]>(
+    () =>
+      selectedOrganization
+        ? [{ id: 'copy-org-id', label: 'Copy Organization ID', icon: <Copy className="w-4 h-4" />, onSelect: copyOrgId }]
+        : [],
+    [selectedOrganization, copyOrgId],
+  )
+  useRegisterCommands(orgCommands, { groupId: 'organization', groupLabel: 'Organization', groupOrder: 5 })
   const [highlightOnboardingEntry, setHighlightOnboardingEntry] = useState(false)
   const [onboardingProgress, setOnboardingProgress] = useState<OnboardingProgress>(() => readOnboardingProgress(userId))
 
@@ -344,10 +364,6 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
             )}
           </Button>
 
-          <div className="hidden md:block">
-            <OrganizationPicker variant="header" />
-          </div>
-
           <Button variant="ghost" size="sm" className="hidden xl:inline-flex" asChild>
             <Link to={RoutePath.KEYS}>
               <KeyRound className="size-4" />
@@ -440,6 +456,24 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-[15rem]">
+              {selectedOrganization && (
+                <>
+                  <DropdownMenuLabel className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                    Organization
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link to={RoutePath.SETTINGS} aria-label="Organization settings">
+                      <Building2 className="size-4" />
+                      <span className="truncate">{orgDisplayName}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" onClick={copyOrgId}>
+                    <Copy className="size-4" />
+                    Copy organization ID
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuLabel className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                 Appearance
               </DropdownMenuLabel>

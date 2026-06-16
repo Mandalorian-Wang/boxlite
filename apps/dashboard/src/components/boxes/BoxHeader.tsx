@@ -101,19 +101,19 @@ export function BoxHeader({
               {writePermitted && (
                 <ButtonGroup>
                   {isStartable(box) && !box.recoverable && (
-                    <Button variant="outline" size="sm" onClick={onStart} disabled={actionsDisabled}>
+                    <Button variant="default" size="sm" onClick={onStart} disabled={actionsDisabled}>
                       {mutations.start ? <Spinner className="size-4" /> : <Play className="size-4" />}
                       Start
                     </Button>
                   )}
                   {isStoppable(box) && (
-                    <Button variant="outline" size="sm" onClick={onStop} disabled={actionsDisabled}>
+                    <Button variant="default" size="sm" onClick={onStop} disabled={actionsDisabled}>
                       {mutations.stop ? <Spinner className="size-4" /> : <Square className="size-4" />}
                       Stop
                     </Button>
                   )}
                   {isRecoverable(box) && (
-                    <Button variant="outline" size="sm" onClick={onRecover} disabled={actionsDisabled}>
+                    <Button variant="default" size="sm" onClick={onRecover} disabled={actionsDisabled}>
                       {mutations.recover ? <Spinner className="size-4" /> : <Wrench className="size-4" />}
                       Recover
                     </Button>
