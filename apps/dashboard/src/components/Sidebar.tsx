@@ -5,6 +5,7 @@
  */
 
 import { LogoText } from '@/assets/Logo'
+import { BoxSearchCommands } from '@/components/BoxSearchCommands'
 import { Button } from '@/components/ui/button'
 import { Kbd } from '@/components/ui/kbd'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -298,6 +299,7 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
         isBannerVisible ? 'top-16 md:top-12' : 'top-0',
       )}
     >
+      <BoxSearchCommands />
       <div className="mx-auto flex h-14 w-full max-w-[1040px] items-center gap-3 px-4 sm:px-5 2xl:px-0">
         <div className="flex min-w-0 items-center gap-3 sm:gap-6">
           <Link
