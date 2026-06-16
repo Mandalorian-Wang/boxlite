@@ -4,7 +4,6 @@
  */
 
 import { Button } from '@/components/ui/button'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -127,7 +126,6 @@ export const CreateBoxSheet = ({
 }) => {
   const navigate = useNavigate()
   const [internalOpen, setInternalOpen] = useState(false)
-  const [advancedOptionsOpen, setAdvancedOptionsOpen] = useState(false)
   const [focusedAdvancedField, setFocusedAdvancedField] = useState<string | null>(null)
   const open = controlledOpen ?? internalOpen
   const setOpen = onOpenChange ?? setInternalOpen
@@ -193,7 +191,6 @@ export const CreateBoxSheet = ({
 
   const resetState = useCallback(() => {
     form.reset(defaultValues)
-    setAdvancedOptionsOpen(false)
     setFocusedAdvancedField(null)
     resetCreateBoxMutation()
   }, [resetCreateBoxMutation, form])
@@ -279,25 +276,12 @@ export const CreateBoxSheet = ({
               }}
             </form.Field>
 
-            <Accordion
-              type="single"
-              collapsible
-              value={advancedOptionsOpen ? 'advanced-options' : ''}
-              onValueChange={(value) => setAdvancedOptionsOpen(value === 'advanced-options')}
-              className="mt-3 flex flex-col gap-3"
-            >
-              <AccordionItem value="advanced-options" className="border-b-0">
-                <AccordionTrigger className="py-1 text-sm font-semibold hover:no-underline [&>svg]:size-5">
-                  Advanced options
-                </AccordionTrigger>
-                <AccordionContent className="pb-0 pt-4">
-                  <div className="space-y-5">
-                    <div className="space-y-3">
-                      <div>
-                        <Label className="text-sm font-semibold">Resources</Label>
-                        <p className="text-xs text-muted-foreground">Blank uses defaults.</p>
-                      </div>
-                      <div className="grid gap-3">
+            <div className="space-y-3">
+              <div>
+                <Label className="text-sm font-semibold">Resources</Label>
+                <p className="text-xs text-muted-foreground">Blank uses defaults.</p>
+              </div>
+              <div className="grid gap-3">
                         {RESOURCE_FIELDS.map(({ name, label, unit, Icon }) => (
                           <form.Field key={name} name={name}>
                             {(field) => {
@@ -348,10 +332,7 @@ export const CreateBoxSheet = ({
                         ))}
                       </div>
                     </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+
           </form>
         </ScrollArea>
         <SheetFooter className="border-t border-border p-5 pt-3 sm:justify-start">
