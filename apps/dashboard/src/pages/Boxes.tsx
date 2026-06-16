@@ -775,11 +775,7 @@ const Boxes: React.FC = () => {
         progress={onboardingProgress}
       />
       <PageContent size="content" className="min-h-0 flex-1 gap-4 max-h-[calc(100vh-65px)] pt-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="space-y-1">
-            <h1 className="text-lg font-medium leading-tight">Boxes</h1>
-            <p className="text-sm text-muted-foreground">Run code in isolated, on-demand environments.</p>
-          </div>
+        <div className="flex flex-wrap items-start justify-end gap-3">
           {authenticatedUserHasPermission(OrganizationRolePermissionsEnum.WRITE_BOXES) && (
             <CreateBoxSheet
               open={createBoxOpen}
