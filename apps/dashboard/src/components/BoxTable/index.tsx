@@ -21,6 +21,7 @@ import { Pagination } from '../Pagination'
 import { ResourceChip } from '../ResourceChip'
 import { SelectionToast } from '../SelectionToast'
 import { TableEmptyState } from '../TableEmptyState'
+import { Skeleton } from '../ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
 import { BulkAction, BulkActionAlertDialog } from './BulkActionAlertDialog'
 import { getBoxDisplayName, getBoxLastEvent, getBoxPublicIdLabel } from './columns'
@@ -186,9 +187,13 @@ export function BoxTable({
 
       {useCompactList ? (
         loading ? (
-          <div className="rounded-sm border border-border px-4 py-8 text-sm text-muted-foreground">Loading...</div>
+          <div className="space-y-3 rounded-xl border border-border/40 bg-card px-4 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_12px_32px_-10px_rgba(0,0,0,0.14)]">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={`skeleton-${i}`} className="h-8 w-full" />
+            ))}
+          </div>
         ) : table.getRowModel().rows?.length ? (
-          <div className="overflow-hidden rounded-sm border border-border bg-background/40">
+          <div className="overflow-hidden rounded-xl border border-border/40 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.05),0_12px_32px_-10px_rgba(0,0,0,0.14)]">
             {table.getRowModel().rows.map((row) => {
               const box = row.original
               const lastEvent = getBoxLastEvent(box)
@@ -196,7 +201,7 @@ export function BoxTable({
               return (
                 <div
                   key={row.id}
-                  className={cn('border-b border-border last:border-b-0', {
+                  className={cn('border-b border-border/50 last:border-b-0', {
                     'opacity-80 pointer-events-none': boxIsLoading[box.id] || box.state === BoxState.DESTROYED,
                     'bg-muted animate-pulse': boxStateIsTransitioning[box.id],
                   })}
@@ -273,7 +278,7 @@ export function BoxTable({
           </div>
         )
       ) : (
-        <div className="overflow-x-auto rounded-sm border border-border bg-card">
+        <div className="overflow-x-auto rounded-xl border border-border/40 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.05),0_12px_32px_-10px_rgba(0,0,0,0.14)]">
           <Table
             className="min-w-[680px] border-separate border-spacing-0 [&_tbody_td]:py-1"
             style={{ tableLayout: 'fixed' }}
@@ -287,7 +292,7 @@ export function BoxTable({
                         key={header.id}
                         data-state={header.column.getCanSort() && 'sortable'}
                         className={cn(
-                          'sticky top-0 z-[3] border-b border-border bg-card',
+                          'sticky top-0 z-[3] border-b border-border/60 bg-card',
                           header.column.getCanSort() ? 'hover:bg-muted' : '',
                         )}
                         style={{
@@ -303,11 +308,13 @@ export function BoxTable({
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={table.getAllColumns().length} className="h-10 text-center">
-                    Loading...
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={`skeleton-${i}`}>
+                    <TableCell colSpan={table.getAllColumns().length} className="border-b border-border/50">
+                      <Skeleton className="h-5 w-full" />
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
@@ -331,7 +338,7 @@ export function BoxTable({
                             e.stopPropagation()
                           }
                         }}
-                        className={cn('border-b border-border', {
+                        className={cn('border-b border-border/50', {
                           'group-hover/table-row:underline': cell.column.id === 'name',
                         })}
                         style={{
