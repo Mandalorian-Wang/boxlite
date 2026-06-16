@@ -785,7 +785,24 @@ const Boxes: React.FC = () => {
         onProgressChange={updateOnboardingProgress}
         progress={onboardingProgress}
       />
-      <PageContent size="content" className="min-h-0 flex-1 gap-3 max-h-[calc(100vh-65px)] pt-4">
+      <PageContent size="content" className="min-h-0 flex-1 gap-4 max-h-[calc(100vh-65px)] pt-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1">
+            <h1 className="text-lg font-medium leading-tight">Boxes</h1>
+            <p className="text-sm text-muted-foreground">Run code in isolated, on-demand environments.</p>
+          </div>
+          {authenticatedUserHasPermission(OrganizationRolePermissionsEnum.WRITE_BOXES) && (
+            <CreateBoxSheet
+              open={createBoxOpen}
+              onOpenChange={setCreateBoxOpen}
+              onCreated={() => {
+                updateOnboardingProgress({ boxCreated: true })
+                setShowOnboardingDialog(false)
+              }}
+              triggerClassName="w-full sm:w-auto"
+            />
+          )}
+        </div>
         <BoxTable
           boxIsLoading={boxIsLoading}
           boxStateIsTransitioning={boxStateIsTransitioning}
@@ -818,19 +835,6 @@ const Boxes: React.FC = () => {
           filters={filters}
           onFiltersChange={handleFiltersChange}
           handleRecover={handleRecover}
-          headerAction={
-            authenticatedUserHasPermission(OrganizationRolePermissionsEnum.WRITE_BOXES) ? (
-              <CreateBoxSheet
-                open={createBoxOpen}
-                onOpenChange={setCreateBoxOpen}
-                onCreated={() => {
-                  updateOnboardingProgress({ boxCreated: true })
-                  setShowOnboardingDialog(false)
-                }}
-                triggerClassName="w-full sm:w-auto"
-              />
-            ) : null
-          }
         />
 
         {boxToDelete && (
