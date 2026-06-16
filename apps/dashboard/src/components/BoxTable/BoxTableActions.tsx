@@ -6,8 +6,9 @@
 
 import { RoutePath } from '@/enums/RoutePath'
 import { getBoxRouteId } from '@/lib/box-identity'
+import { isSshAccessible } from '@/lib/utils/box'
 import { BoxState } from '@boxlite-ai/api-client'
-import { Terminal, MoreVertical, Play, Square, Loader2, Wrench } from 'lucide-react'
+import { Terminal, MoreVertical, Play, Square, Loader2, Wrench, KeyRound } from 'lucide-react'
 import { generatePath, useNavigate } from 'react-router-dom'
 import { useMemo } from 'react'
 import TooltipButton from '../TooltipButton'
@@ -81,42 +82,27 @@ export function BoxTableActions({
     })
 
     if (writePermitted) {
-      if (box.state === BoxState.STARTED) {
-        items.push({
-          key: 'terminal',
-          label: 'Terminal',
-          onClick: () => onOpenWebTerminal(box.id),
-          disabled: isLoading,
-        })
-        items.push({
-          key: 'stop',
-          label: 'Stop',
-          onClick: () => onStop(box.id),
-          disabled: isLoading,
-        })
-      } else if (box.state === BoxState.STOPPED) {
-        items.push({
-          key: 'start',
-          label: 'Start',
-          onClick: () => onStart(box.id),
-          disabled: isLoading,
-        })
-      } else if (box.state === BoxState.ERROR && box.recoverable) {
-        items.push({
-          key: 'recover',
-          label: 'Recover',
-          onClick: () => onRecover(box.id),
-          disabled: isLoading,
-        })
+      // Start/Stop/Recover live as the inline primary button and Terminal/SSH as
+      // their own buttons on desktop, so they are not repeated here. Terminal stays
+      // in the menu only on compact (mobile) layout where there is no inline button.
+      if (layout === 'mobile') {
+        if (box.state === BoxState.STARTED) {
+          items.push({
+            key: 'terminal',
+            label: 'Terminal',
+            onClick: () => onOpenWebTerminal(box.id),
+            disabled: isLoading,
+          })
+        }
+        if (isSshAccessible(box)) {
+          items.push({
+            key: 'create-ssh',
+            label: 'Create SSH Access',
+            onClick: () => onCreateSshAccess(box.id),
+            disabled: isLoading,
+          })
+        }
       }
-
-      // Add SSH access options
-      items.push({
-        key: 'create-ssh',
-        label: 'Create SSH Access',
-        onClick: () => onCreateSshAccess(box.id),
-        disabled: isLoading,
-      })
       items.push({
         key: 'revoke-ssh',
         label: 'Revoke SSH Access',
@@ -126,7 +112,7 @@ export function BoxTableActions({
     }
 
     if (deletePermitted) {
-      if (items.length > 0 && (box.state === BoxState.STOPPED || box.state === BoxState.STARTED)) {
+      if (items.length > 0) {
         items.push({ key: 'separator', type: 'separator' })
       }
 
@@ -141,19 +127,16 @@ export function BoxTableActions({
 
     return items
   }, [
+    layout,
     writePermitted,
     deletePermitted,
     box.state,
     box.id,
     isLoading,
-    box.recoverable,
-    onStart,
-    onStop,
     onDelete,
     onOpenWebTerminal,
     onCreateSshAccess,
     onRevokeSshAccess,
-    onRecover,
     navigate,
   ])
 
@@ -253,6 +236,21 @@ export function BoxTableActions({
           disabled
         >
           <Terminal className="w-4 h-4" />
+        </TooltipButton>
+      )}
+
+      {writePermitted && isSshAccessible(box) && (
+        <TooltipButton
+          variant="outline"
+          className="text-muted-foreground"
+          tooltipText="SSH access"
+          disabled={isLoading}
+          onClick={(e) => {
+            e.stopPropagation()
+            onCreateSshAccess(box.id)
+          }}
+        >
+          <KeyRound className="w-4 h-4" />
         </TooltipButton>
       )}
 
