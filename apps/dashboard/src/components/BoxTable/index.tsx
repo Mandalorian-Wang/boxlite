@@ -55,8 +55,6 @@ export function BoxTable({
   handleCreateSshAccess,
   handleRevokeSshAccess,
   handleScreenRecordings,
-  handleRefresh,
-  isRefreshing,
   onRowClick,
   pagination,
   pageCount,
@@ -186,7 +184,7 @@ export function BoxTable({
 
   return (
     <>
-      <BoxTableHeader table={table} onRefresh={handleRefresh} isRefreshing={isRefreshing} headerAction={headerAction} />
+      <BoxTableHeader table={table} headerAction={headerAction} />
 
       {useCompactList ? (
         loading ? (

@@ -29,8 +29,6 @@ export interface BoxTableProps {
   getWebTerminalUrl: (id: string) => Promise<string | null>
   handleCreateSshAccess: (id: string) => void
   handleRevokeSshAccess: (id: string) => void
-  handleRefresh: () => void
-  isRefreshing?: boolean
   onRowClick?: (box: Box) => void
   pagination: {
     pageIndex: number
@@ -66,8 +64,6 @@ export interface BoxTableActionsProps {
 
 export interface BoxTableHeaderProps {
   table: Table<Box>
-  onRefresh: () => void
-  isRefreshing?: boolean
   headerAction?: ReactNode
 }
 

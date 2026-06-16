@@ -467,10 +467,6 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
                       <span className="truncate">{orgDisplayName}</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer" onClick={copyOrgId}>
-                    <Copy className="size-4" />
-                    Copy organization ID
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}

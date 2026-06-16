@@ -159,7 +159,6 @@ const Boxes: React.FC = () => {
     data: boxesData,
     isLoading: boxesDataIsLoading,
     error: boxesDataError,
-    refetch: refetchBoxesData,
   } = useBoxes(queryKey, queryParams)
   const hasBoxes = (boxesData?.items.length ?? 0) > 0 || (boxesData?.total ?? 0) > 0
 
@@ -245,19 +244,6 @@ const Boxes: React.FC = () => {
   const [boxStateIsTransitioning, setBoxStateIsTransitioning] = useState<Record<string, boolean>>({}) // display transition animation
 
   // Manual Refreshing
-
-  const [boxDataIsRefreshing, setBoxDataIsRefreshing] = useState(false)
-
-  const handleRefresh = useCallback(async () => {
-    setBoxDataIsRefreshing(true)
-    try {
-      await refetchBoxesData()
-    } catch (error) {
-      handleApiError(error, 'Failed to refresh boxes')
-    } finally {
-      setBoxDataIsRefreshing(false)
-    }
-  }, [refetchBoxesData])
 
   // Delete Box Dialog
 
@@ -835,8 +821,6 @@ const Boxes: React.FC = () => {
           getWebTerminalUrl={getWebTerminalUrl}
           handleCreateSshAccess={openCreateSshDialog}
           handleRevokeSshAccess={openRevokeSshDialog}
-          handleRefresh={handleRefresh}
-          isRefreshing={boxDataIsRefreshing}
           data={boxesData?.items || []}
           loading={boxesDataIsLoading}
           onRowClick={(box: Box) => {
