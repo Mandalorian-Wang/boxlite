@@ -78,7 +78,7 @@ export function BoxHeader({
           <div className="flex items-center gap-1.5 min-w-0">
             <h2 className="text-base font-medium truncate">{getBoxDisplayName(box)}</h2>
             <CopyButton value={getBoxDisplayName(box)} tooltipText="Copy name" size="icon-xs" />
-            <span className="hidden sm:inline font-mono text-xs text-muted-foreground truncate">
+            <span className="hidden sm:inline text-xs text-muted-foreground truncate">
               {getBoxPublicIdLabel(box)}
             </span>
             {publicBoxId && <CopyButton value={publicBoxId} tooltipText="Copy Box ID" size="icon-xs" />}
@@ -101,19 +101,19 @@ export function BoxHeader({
               {writePermitted && (
                 <ButtonGroup>
                   {isStartable(box) && !box.recoverable && (
-                    <Button variant="default" size="sm" onClick={onStart} disabled={actionsDisabled}>
+                    <Button variant="secondary" size="sm" onClick={onStart} disabled={actionsDisabled}>
                       {mutations.start ? <Spinner className="size-4" /> : <Play className="size-4" />}
                       Start
                     </Button>
                   )}
                   {isStoppable(box) && (
-                    <Button variant="default" size="sm" onClick={onStop} disabled={actionsDisabled}>
+                    <Button variant="secondary" size="sm" onClick={onStop} disabled={actionsDisabled}>
                       {mutations.stop ? <Spinner className="size-4" /> : <Square className="size-4" />}
                       Stop
                     </Button>
                   )}
                   {isRecoverable(box) && (
-                    <Button variant="default" size="sm" onClick={onRecover} disabled={actionsDisabled}>
+                    <Button variant="secondary" size="sm" onClick={onRecover} disabled={actionsDisabled}>
                       {mutations.recover ? <Spinner className="size-4" /> : <Wrench className="size-4" />}
                       Recover
                     </Button>

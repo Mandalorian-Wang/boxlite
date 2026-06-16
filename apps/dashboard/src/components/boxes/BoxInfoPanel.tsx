@@ -21,8 +21,8 @@ interface BoxInfoPanelProps {
 
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 min-w-0 py-1.5">
-      <span className="text-xs uppercase tracking-wider text-muted-foreground shrink-0">{label}</span>
+    <div className="flex items-baseline justify-between gap-4 min-w-0 py-1">
+      <span className="text-xs text-muted-foreground shrink-0">{label}</span>
       <div className="min-w-0 text-sm text-right truncate">{children}</div>
     </div>
   )
@@ -47,13 +47,13 @@ export function BoxInfoPanel({ box, getRegionName }: BoxInfoPanelProps) {
       <div className="grid grid-cols-1 gap-x-12 px-5 py-4 sm:grid-cols-2">
         <MetaRow label="Box ID">
           <div className="flex min-w-0 items-center justify-end gap-1">
-            <span className="truncate font-mono text-xs">{getBoxPublicIdLabel(box)}</span>
+            <span className="truncate text-sm">{getBoxPublicIdLabel(box)}</span>
             {publicBoxId && <CopyButton value={publicBoxId} tooltipText="Copy Box ID" size="icon-xs" />}
           </div>
         </MetaRow>
         <MetaRow label="Image">
           {box.image ? (
-            <span className="truncate font-mono text-xs" title={box.image}>
+            <span className="truncate text-sm" title={box.image}>
               {box.image}
             </span>
           ) : (
@@ -84,12 +84,12 @@ export function BoxInfoPanel({ box, getRegionName }: BoxInfoPanelProps) {
 
       {labelEntries.length > 0 && (
         <div className="border-t border-border px-5 py-4">
-          <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Labels</p>
+          <p className="mb-2 text-xs text-muted-foreground">Labels</p>
           <div className="flex flex-wrap gap-1.5">
             {labelEntries.map(([key, value]) => (
               <span
                 key={key}
-                className="rounded-md border border-border bg-muted/40 px-2 py-0.5 font-mono text-xs text-muted-foreground"
+                className="rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs text-muted-foreground"
               >
                 {key}={value}
               </span>

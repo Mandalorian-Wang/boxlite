@@ -148,7 +148,6 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
   const navigate = useNavigate()
   const { selectedOrganization } = useSelectedOrganization()
   const [, copyToClipboard] = useCopyToClipboard()
-  const orgDisplayName = selectedOrganization?.name || 'Default Organization'
   const copyOrgId = useCallback(() => {
     if (!selectedOrganization) return
     copyToClipboard(selectedOrganization.id)
@@ -455,26 +454,17 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
                 {!isCompactScreen && <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[15rem]">
-              {selectedOrganization && (
-                <>
-                  <DropdownMenuLabel className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                    Organization
-                  </DropdownMenuLabel>
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link to={RoutePath.SETTINGS} aria-label="Organization settings">
-                      <Building2 className="size-4" />
-                      <span className="truncate">{orgDisplayName}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                </>
-              )}
-              <DropdownMenuLabel className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                Appearance
-              </DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="min-w-[14rem]">
               <ThemeMenuItems theme={theme} setTheme={setTheme} />
               <DropdownMenuSeparator />
+              {selectedOrganization && (
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link to={RoutePath.SETTINGS} aria-label="Organization settings">
+                    <Building2 className="size-4" />
+                    Organization
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild className="cursor-pointer">
                 <a href={BOXLITE_DOCS_URL} target="_blank" rel="noopener noreferrer">
                   <BookOpen className="size-4" />

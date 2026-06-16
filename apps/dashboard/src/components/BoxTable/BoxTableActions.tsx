@@ -174,7 +174,7 @@ export function BoxTableActions({
       <div className="flex items-center justify-end gap-2">
         {writePermitted && (
           <Button
-            variant="default"
+            variant="secondary"
             size="sm"
             className="min-w-20 justify-center"
             disabled={isLoading || isTransitioning}
@@ -229,7 +229,7 @@ export function BoxTableActions({
   return (
     <div className="flex items-center justify-end gap-2">
       <TooltipButton
-        variant="default"
+        variant="secondary"
         tooltipText={primaryAction.label}
         disabled={isLoading || isTransitioning}
         onClick={(e) => {
