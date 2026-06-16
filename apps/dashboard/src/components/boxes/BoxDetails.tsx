@@ -35,7 +35,6 @@ import { handleApiError } from '@/lib/error-handling'
 import { setLocalStorageItem } from '@/lib/local-storage'
 import {
   ONBOARDING_ENTRY_HIGHLIGHT_EVENT,
-  ONBOARDING_OPEN_EVENT,
   mergeOnboardingProgress,
   ONBOARDING_PROGRESS_EVENT,
   readOnboardingProgress,
@@ -108,16 +107,6 @@ export default function BoxDetails() {
       setShowOnboardingDialog(true)
     }
   }, [searchParams, selectedOrganization, user?.profile.sub])
-
-  useEffect(() => {
-    const handleOpenOnboarding = (event: Event) => {
-      event.preventDefault()
-      setShowOnboardingDialog(true)
-    }
-
-    window.addEventListener(ONBOARDING_OPEN_EVENT, handleOpenOnboarding)
-    return () => window.removeEventListener(ONBOARDING_OPEN_EVENT, handleOpenOnboarding)
-  }, [])
 
   const clearOnboardingUrlParam = useCallback(() => {
     if (searchParams.get('onboarding') !== '1') {
