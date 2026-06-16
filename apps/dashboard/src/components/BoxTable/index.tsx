@@ -27,7 +27,6 @@ import { BulkAction, BulkActionAlertDialog } from './BulkActionAlertDialog'
 import { getBoxDisplayName, getBoxLastEvent, getBoxPublicIdLabel } from './columns'
 import { BoxState as BoxStateComponent } from './BoxState'
 import { BoxTableActions } from './BoxTableActions'
-import { BoxTableHeader } from './BoxTableHeader'
 import { BoxTableProps } from './types'
 import { useBoxCommands } from './useBoxCommands'
 import { useBoxTable } from './useBoxTable'
@@ -65,7 +64,6 @@ export function BoxTable({
   filters,
   onFiltersChange,
   handleRecover,
-  headerAction,
 }: BoxTableProps) {
   const navigate = useNavigate()
   const useCompactList = useIsCompactScreen()
@@ -183,8 +181,6 @@ export function BoxTable({
 
   return (
     <>
-      <BoxTableHeader table={table} headerAction={headerAction} />
-
       {useCompactList ? (
         loading ? (
           <div className="space-y-3 rounded-xl border border-border/40 bg-card px-4 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_12px_32px_-10px_rgba(0,0,0,0.14)]">
