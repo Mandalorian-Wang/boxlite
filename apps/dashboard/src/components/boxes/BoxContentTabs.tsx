@@ -34,7 +34,7 @@ export function BoxContentTabs({ box, isLoading, experimentsEnabled, tab, onTabC
   if (isLoading) {
     return (
       <div className={TAB_SHELL}>
-        <div className="flex items-center gap-0 border-b border-border h-[41px] px-4 shrink-0">
+        <div className="flex items-center gap-0 h-[41px] px-4 shrink-0">
           <Skeleton className="h-4 w-10" />
           <Skeleton className="h-4 w-12 ml-4" />
           <Skeleton className="h-4 w-14 ml-4" />
@@ -52,7 +52,7 @@ export function BoxContentTabs({ box, isLoading, experimentsEnabled, tab, onTabC
 
   return (
     <Tabs value={tab} onValueChange={(v) => onTabChange(v as TabValue)} className={TAB_SHELL}>
-      <TabsList variant="underline" className="h-[41px] shrink-0 overflow-x-auto overflow-y-hidden scrollbar-sm">
+      <TabsList variant="underline" className="h-[41px] shrink-0 overflow-x-auto overflow-y-hidden scrollbar-sm border-b-0">
         {experimentsEnabled &&
           availableTabs.some((value) => ['logs', 'traces', 'metrics', 'spending'].includes(value)) && (
             <>
