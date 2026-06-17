@@ -28,7 +28,6 @@ import { useCopyToClipboard } from 'usehooks-ts'
 import { toast } from 'sonner'
 import {
   ONBOARDING_OPEN_EVENT,
-  ONBOARDING_ENTRY_HIGHLIGHT_EVENT,
   getOnboardingCoreProgress,
   ONBOARDING_PROGRESS_EVENT,
   readOnboardingProgress,
@@ -162,7 +161,6 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
     [selectedOrganization, copyOrgId],
   )
   useRegisterCommands(orgCommands, { groupId: 'organization', groupLabel: 'Organization', groupOrder: 5 })
-  const [highlightOnboardingEntry, setHighlightOnboardingEntry] = useState(false)
   const [onboardingProgress, setOnboardingProgress] = useState<OnboardingProgress>(() => readOnboardingProgress(userId))
 
   useEffect(() => {
@@ -192,16 +190,6 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
     refetchOnWindowFocus: false,
   })
   const canViewAdmin = adminAccessQuery.data === true
-
-  useEffect(() => {
-    const handleHighlight = () => {
-      setHighlightOnboardingEntry(true)
-      window.setTimeout(() => setHighlightOnboardingEntry(false), 3200)
-    }
-
-    window.addEventListener(ONBOARDING_ENTRY_HIGHLIGHT_EVENT, handleHighlight)
-    return () => window.removeEventListener(ONBOARDING_ENTRY_HIGHLIGHT_EVENT, handleHighlight)
-  }, [])
 
   const primaryItems = useMemo<SidebarItem[]>(() => {
     return [
@@ -290,7 +278,7 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
   return (
     <header
       className={cn(
-        'sticky z-40 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/88',
+        'sticky z-40 border-b border-border/50 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85',
         isBannerVisible ? 'top-16 md:top-12' : 'top-0',
       )}
     >
@@ -372,11 +360,7 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
               <Button
                 variant="ghost"
                 size={isCompactScreen ? 'icon-sm' : 'sm'}
-                className={cn(
-                  'relative',
-                  highlightOnboardingEntry &&
-                    'animate-[boxlite-guide-callout_1.1s_ease-in-out_3] ring-2 ring-primary ring-offset-2 ring-offset-background',
-                )}
+                className="relative"
                 aria-label="Open onboarding guide"
                 onClick={openOnboardingGuide}
               >

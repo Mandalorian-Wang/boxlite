@@ -21,17 +21,18 @@ body {
 
 @layer base {
   :root {
-    --background: 42 24% 97%;
+    /* Page is a recessed warm grey; cards + nav share a brighter surface so they read as one elevated layer. */
+    --background: 42 16% 95%;
     --foreground: 220 20% 13%;
-    --card: 42 24% 98%;
+    --card: 42 33% 99%;
     --card-foreground: 220 20% 13%;
-    --popover: 42 24% 99%;
+    --popover: 42 33% 100%;
     --popover-foreground: 220 20% 13%;
     --primary: 220 22% 12%;
     --primary-foreground: 42 24% 97%;
-    --secondary: 40 20% 94%;
+    --secondary: 40 18% 93%;
     --secondary-foreground: 220 20% 13%;
-    --muted: 40 18% 95%;
+    --muted: 40 16% 92%;
     --muted-foreground: 220 10% 42%;
     --accent: 36 22% 93%;
     --accent-foreground: 220 20% 13%;
@@ -215,18 +216,6 @@ body {
     }
   }
 
-  @keyframes boxlite-guide-callout {
-    0%,
-    100% {
-      transform: translateY(0) scale(1);
-    }
-    35% {
-      transform: translateY(-1px) scale(1.04);
-    }
-    70% {
-      transform: translateY(0) scale(1);
-    }
-  }
 }
 
 .scrollbar-sm {
