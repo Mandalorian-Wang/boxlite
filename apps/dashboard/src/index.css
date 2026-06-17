@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Brand/display face — Space Grotesk (SIL OFL 1.1, see assets/fonts/Space-Grotesk-OFL.txt).
+   Used for headings and labels; body/UI stays on Inter, code stays monospace. */
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('./assets/fonts/space-grotesk-latin-variable.woff2') format('woff2');
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -131,7 +141,7 @@ body {
   }
 
   html {
-    font-size: 14px;
+    font-size: 16px;
   }
 
   * {

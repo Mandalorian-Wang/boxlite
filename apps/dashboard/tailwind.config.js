@@ -19,6 +19,10 @@ module.exports = {
       screens: {
         xs: '480px',
       },
+      fontFamily: {
+        // Brand/display face; pair with the Inter-based default sans for body/UI.
+        display: ['Space Grotesk', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',

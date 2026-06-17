@@ -63,7 +63,7 @@ export function BoxHeader({
 }: BoxHeaderProps) {
   return (
     <div className="shrink-0">
-      <div className="mx-auto flex w-full max-w-[1040px] flex-wrap items-center justify-between gap-x-4 gap-y-2 min-w-0 px-4 sm:px-5 2xl:px-0 py-1.5 sm:py-2">
+      <div className="mx-auto flex w-full max-w-[1040px] flex-wrap items-center justify-between gap-x-4 gap-y-2 min-w-0 px-4 sm:px-5 2xl:px-0 pt-7 pb-2">
         <div className="flex items-center gap-2 min-w-0">
         <Button variant="ghost" size="icon-sm" className="shrink-0" onClick={onBack}>
           <ArrowLeft className="size-4" />
@@ -73,7 +73,7 @@ export function BoxHeader({
         ) : box ? (
           <>
             <div className="flex items-center gap-1 min-w-0">
-              <h2 className="text-base font-medium truncate">{getBoxDisplayName(box)}</h2>
+              <h2 className="font-display text-base font-medium truncate">{getBoxDisplayName(box)}</h2>
               <CopyButton value={getBoxDisplayName(box)} tooltipText="Copy name" size="icon-xs" />
             </div>
             <BoxState pill state={box.state} errorReason={box.errorReason} recoverable={box.recoverable} />

@@ -22,7 +22,7 @@ interface BoxInfoPanelProps {
 function MetaCell({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="min-w-0">
-      <div className="mb-1 text-xs text-muted-foreground">{label}</div>
+      <div className="mb-1 font-display text-xs font-bold text-muted-foreground">{label}</div>
       <div className="min-w-0 truncate text-sm">{children}</div>
     </div>
   )
