@@ -8,7 +8,7 @@ import { RoutePath } from '@/enums/RoutePath'
 import { getBoxRouteId } from '@/lib/box-identity'
 import { isSshAccessible } from '@/lib/utils/box'
 import { BoxState } from '@boxlite-ai/api-client'
-import { Terminal, MoreVertical, Play, Square, Loader2, Wrench, KeyRound } from 'lucide-react'
+import { Terminal, MoreVertical, Play, Square, Loader2, Wrench } from 'lucide-react'
 import { generatePath, useNavigate } from 'react-router-dom'
 import { useMemo } from 'react'
 import TooltipButton from '../TooltipButton'
@@ -82,26 +82,24 @@ export function BoxTableActions({
     })
 
     if (writePermitted) {
-      // Start/Stop/Recover live as the inline primary button and Terminal/SSH as
-      // their own buttons on desktop, so they are not repeated here. Terminal stays
-      // in the menu only on compact (mobile) layout where there is no inline button.
-      if (layout === 'mobile') {
-        if (box.state === BoxState.STARTED) {
-          items.push({
-            key: 'terminal',
-            label: 'Terminal',
-            onClick: () => onOpenWebTerminal(box.id),
-            disabled: isLoading,
-          })
-        }
-        if (isSshAccessible(box)) {
-          items.push({
-            key: 'create-ssh',
-            label: 'Create SSH Access',
-            onClick: () => onCreateSshAccess(box.id),
-            disabled: isLoading,
-          })
-        }
+      // Start/Stop/Recover and Terminal are inline buttons on desktop; Terminal
+      // joins the menu only on compact (mobile) layout. SSH lives in the menu on
+      // every layout so it isn't surfaced inconsistently per row.
+      if (layout === 'mobile' && box.state === BoxState.STARTED) {
+        items.push({
+          key: 'terminal',
+          label: 'Terminal',
+          onClick: () => onOpenWebTerminal(box.id),
+          disabled: isLoading,
+        })
+      }
+      if (isSshAccessible(box)) {
+        items.push({
+          key: 'create-ssh',
+          label: 'Create SSH Access',
+          onClick: () => onCreateSshAccess(box.id),
+          disabled: isLoading,
+        })
       }
       items.push({
         key: 'revoke-ssh',
@@ -236,21 +234,6 @@ export function BoxTableActions({
           disabled
         >
           <Terminal className="w-4 h-4" />
-        </TooltipButton>
-      )}
-
-      {writePermitted && isSshAccessible(box) && (
-        <TooltipButton
-          variant="outline"
-          className="text-muted-foreground"
-          tooltipText="SSH access"
-          disabled={isLoading}
-          onClick={(e) => {
-            e.stopPropagation()
-            onCreateSshAccess(box.id)
-          }}
-        >
-          <KeyRound className="w-4 h-4" />
         </TooltipButton>
       )}
 

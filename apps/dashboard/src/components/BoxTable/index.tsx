@@ -279,29 +279,33 @@ export function BoxTable({
             className="min-w-[680px] border-separate border-spacing-0 [&_tbody_td]:py-1 [&_th:first-child]:pl-5 [&_td:first-child]:pl-5 [&_th:last-child]:pr-5 [&_td:last-child]:pr-5"
             style={{ tableLayout: 'fixed' }}
           >
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead
-                        key={header.id}
-                        data-state={header.column.getCanSort() && 'sortable'}
-                        className={cn(
-                          'sticky top-0 z-[3] border-b border-border/40 bg-card',
-                          header.column.getCanSort() ? 'hover:bg-muted' : '',
-                        )}
-                        style={{
-                          width: `${header.column.getSize()}px`,
-                        }}
-                      >
-                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableHead>
-                    )
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
+            {(loading || table.getRowModel().rows?.length > 0) && (
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead
+                          key={header.id}
+                          data-state={header.column.getCanSort() && 'sortable'}
+                          className={cn(
+                            'sticky top-0 z-[3] border-b border-border/40 bg-card',
+                            header.column.getCanSort() ? 'hover:bg-muted' : '',
+                          )}
+                          style={{
+                            width: `${header.column.getSize()}px`,
+                          }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      )
+                    })}
+                  </TableRow>
+                ))}
+              </TableHeader>
+            )}
             <TableBody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
