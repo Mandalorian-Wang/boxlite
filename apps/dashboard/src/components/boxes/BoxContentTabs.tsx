@@ -50,6 +50,21 @@ export function BoxContentTabs({ box, isLoading, experimentsEnabled, tab, onTabC
 
   if (!box) return null
 
+  // With observability tabs disabled there is only Terminal, so a tab selector
+  // is noise — show a plain header label and the terminal directly.
+  if (!experimentsEnabled) {
+    return (
+      <div className={TAB_SHELL}>
+        <div className="flex h-[41px] shrink-0 items-center px-4 font-display text-sm font-medium text-foreground">
+          Terminal
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <BoxTerminalTab box={box} />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <Tabs value={tab} onValueChange={(v) => onTabChange(v as TabValue)} className={TAB_SHELL}>
       <TabsList variant="underline" className="h-[41px] shrink-0 overflow-x-auto overflow-y-hidden scrollbar-sm border-b-0">

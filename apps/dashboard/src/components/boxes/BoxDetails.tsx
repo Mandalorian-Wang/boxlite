@@ -223,7 +223,7 @@ export default function BoxDetails() {
   }
 
   return (
-    <PageLayout className="h-[var(--app-content-height,calc(100svh_-_3.5rem))] overflow-hidden">
+    <PageLayout className="!h-auto min-h-[var(--app-content-height,calc(100svh_-_3.5rem))]">
       <OnboardingGuideDialog
         open={showOnboardingDialog}
         onOpenChange={(isOpen) => {
@@ -259,7 +259,7 @@ export default function BoxDetails() {
       />
 
       {isNotFound ? (
-        <div className="flex flex-1 min-h-0 items-center justify-center">
+        <div className="flex min-h-[60vh] items-center justify-center">
           <Empty>
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -274,30 +274,28 @@ export default function BoxDetails() {
           </Empty>
         </div>
       ) : (
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-4 px-4 py-5 sm:px-5">
-            {isLoading ? (
-              <InfoPanelSkeleton />
-            ) : isError || !box ? (
-              <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border p-8 text-center text-muted-foreground">
-                <p className="text-sm">Failed to load box details.</p>
-                <Button variant="outline" size="sm" onClick={() => refetch()}>
-                  <RefreshCw className="size-4" />
-                  Retry
-                </Button>
-              </div>
-            ) : (
-              <BoxInfoPanel box={box} getRegionName={getRegionName} />
-            )}
+        <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-4 px-4 pt-6 pb-10 sm:px-5">
+          {isLoading ? (
+            <InfoPanelSkeleton />
+          ) : isError || !box ? (
+            <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border p-8 text-center text-muted-foreground">
+              <p className="text-sm">Failed to load box details.</p>
+              <Button variant="outline" size="sm" onClick={() => refetch()}>
+                <RefreshCw className="size-4" />
+                Retry
+              </Button>
+            </div>
+          ) : (
+            <BoxInfoPanel box={box} getRegionName={getRegionName} />
+          )}
 
-            <BoxContentTabs
-              box={box}
-              isLoading={isLoading}
-              experimentsEnabled={experimentsEnabled}
-              tab={tab}
-              onTabChange={setTab}
-            />
-          </div>
+          <BoxContentTabs
+            box={box}
+            isLoading={isLoading}
+            experimentsEnabled={experimentsEnabled}
+            tab={tab}
+            onTabChange={setTab}
+          />
         </div>
       )}
 

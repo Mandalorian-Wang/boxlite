@@ -49,7 +49,7 @@ export function BoxTerminalTab({ box }: { box: Box }) {
   if (!running) {
     return (
       <div className="flex-1 flex flex-col p-2 sm:p-4">
-        <div className="flex-1 min-h-0 rounded-md border border-border flex">
+        <div className="flex-1 min-h-0 flex">
           <Empty className="border-0">
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -80,7 +80,7 @@ export function BoxTerminalTab({ box }: { box: Box }) {
   if (!activated) {
     return (
       <div className="flex-1 flex flex-col p-2 sm:p-4">
-        <div className="flex-1 min-h-0 rounded-md border border-border flex">
+        <div className="flex-1 min-h-0 flex">
           <Empty className="border-0">
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -109,7 +109,7 @@ export function BoxTerminalTab({ box }: { box: Box }) {
   if (isLoading || isFetching) {
     return (
       <div className="flex-1 flex flex-col p-2 sm:p-4">
-        <div className="flex-1 min-h-0 rounded-md border border-border flex items-center justify-center gap-2 text-muted-foreground">
+        <div className="flex-1 min-h-0 flex items-center justify-center gap-2 text-muted-foreground">
           <Spinner className="size-4" />
           <span className="text-sm">Connecting...</span>
         </div>
@@ -121,7 +121,7 @@ export function BoxTerminalTab({ box }: { box: Box }) {
   if (isError || !session) {
     return (
       <div className="flex-1 flex flex-col p-2 sm:p-4">
-        <div className="flex-1 min-h-0 rounded-md border border-border flex">
+        <div className="flex-1 min-h-0 flex">
           <Empty className="border-0">
             <EmptyHeader>
               <EmptyTitle>Failed to connect</EmptyTitle>
@@ -140,8 +140,8 @@ export function BoxTerminalTab({ box }: { box: Box }) {
   // Active session
   const fullscreenHref = RoutePath.BOX_TERMINAL.replace(':boxId', getBoxRouteId(box))
   return (
-    <div className="flex-1 flex flex-col p-2 sm:p-4">
-      <div className="relative flex-1 min-h-0 rounded-md border border-border bg-black overflow-hidden p-1">
+    <div className="flex-1 flex flex-col">
+      <div className="relative flex-1 min-h-0 bg-black overflow-hidden">
         <BoxTerminalFrame sessionUrl={session.url} fullscreenHref={fullscreenHref} className="h-full" />
       </div>
     </div>
