@@ -7,7 +7,7 @@
 import { OrganizationSuspendedError } from '@/api/errors'
 import { OnboardingGuideDialog } from '@/components/OnboardingGuideDialog'
 import { PageContent, PageLayout } from '@/components/PageLayout'
-import { CreateBoxSheet } from '@/components/Box/CreateBoxSheet'
+import { CreateBoxDialog } from '@/components/Box/CreateBoxDialog'
 import { BoxTable } from '@/components/BoxTable'
 import {
   AlertDialog,
@@ -777,7 +777,7 @@ const Boxes: React.FC = () => {
       <PageContent size="content" className="min-h-0 flex-1 gap-4 max-h-[calc(100vh-65px)] pt-4">
         <div className="flex flex-wrap items-start justify-end gap-3">
           {authenticatedUserHasPermission(OrganizationRolePermissionsEnum.WRITE_BOXES) && (
-            <CreateBoxSheet
+            <CreateBoxDialog
               open={createBoxOpen}
               onOpenChange={setCreateBoxOpen}
               onCreated={() => {
