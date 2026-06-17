@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0
  */
 
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -274,60 +275,62 @@ export const CreateBoxDialog = ({
             }}
           </form.Field>
 
-          <div className="space-y-2.5">
-            <div>
-              <Label>Resources</Label>
-              <p className="text-xs text-muted-foreground">Leave blank to use defaults.</p>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              {RESOURCE_FIELDS.map(({ name, label, unit, Icon }) => (
-                <form.Field key={name} name={name}>
-                  {(field) => {
-                    const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
-                    const defaultValue = BOX_CREATE_DEFAULTS[name]
-                    return (
-                      <div className="min-w-0 space-y-1.5">
-                        <Label
-                          htmlFor={field.name}
-                          className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
-                        >
-                          <Icon className="size-3.5" />
-                          {label}
-                        </Label>
-                        <div className="relative">
-                          <NumericFormat
-                            customInput={Input}
-                            aria-invalid={isInvalid}
-                            id={field.name}
-                            className="w-full pr-11 text-right font-medium tabular-nums placeholder:font-normal placeholder:text-muted-foreground/55"
-                            placeholder={focusedResourceField === field.name ? '' : defaultValue}
-                            decimalScale={0}
-                            allowNegative={false}
-                            isAllowed={(values) => values.floatValue === undefined || values.floatValue >= 1}
-                            value={field.state.value ?? ''}
-                            onFocus={() => setFocusedResourceField(field.name)}
-                            onBlur={() => {
-                              field.handleBlur()
-                              setFocusedResourceField((currentField) =>
-                                currentField === field.name ? null : currentField,
-                              )
-                            }}
-                            onValueChange={(values) => field.handleChange(values.value)}
-                          />
-                          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground">
-                            {unit}
-                          </span>
-                        </div>
-                        {field.state.meta.errors.length > 0 && field.state.meta.isTouched && (
-                          <FieldError errors={field.state.meta.errors} />
-                        )}
-                      </div>
-                    )
-                  }}
-                </form.Field>
-              ))}
-            </div>
-          </div>
+          <Accordion type="single" collapsible>
+            <AccordionItem value="advanced">
+              <AccordionTrigger className="py-2 text-sm font-medium">Advanced</AccordionTrigger>
+              <AccordionContent className="pb-0 pt-2">
+                <p className="mb-3 text-xs text-muted-foreground">Leave blank to use defaults.</p>
+                <div className="space-y-3">
+                  {RESOURCE_FIELDS.map(({ name, label, unit, Icon }) => (
+                    <form.Field key={name} name={name}>
+                      {(field) => {
+                        const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                        const defaultValue = BOX_CREATE_DEFAULTS[name]
+                        return (
+                          <div className="grid grid-cols-[1fr_9rem] items-center gap-3">
+                            <Label
+                              htmlFor={field.name}
+                              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground"
+                            >
+                              <Icon className="size-4" />
+                              {label}
+                            </Label>
+                            <div className="relative">
+                              <NumericFormat
+                                customInput={Input}
+                                aria-invalid={isInvalid}
+                                id={field.name}
+                                className="w-full pr-11 text-right font-medium tabular-nums placeholder:font-normal placeholder:text-muted-foreground/55"
+                                placeholder={focusedResourceField === field.name ? '' : defaultValue}
+                                decimalScale={0}
+                                allowNegative={false}
+                                isAllowed={(values) => values.floatValue === undefined || values.floatValue >= 1}
+                                value={field.state.value ?? ''}
+                                onFocus={() => setFocusedResourceField(field.name)}
+                                onBlur={() => {
+                                  field.handleBlur()
+                                  setFocusedResourceField((currentField) =>
+                                    currentField === field.name ? null : currentField,
+                                  )
+                                }}
+                                onValueChange={(values) => field.handleChange(values.value)}
+                              />
+                              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground">
+                                {unit}
+                              </span>
+                              {field.state.meta.errors.length > 0 && field.state.meta.isTouched && (
+                                <FieldError errors={field.state.meta.errors} />
+                              )}
+                            </div>
+                          </div>
+                        )
+                      }}
+                    </form.Field>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </form>
 
         <DialogFooter>
