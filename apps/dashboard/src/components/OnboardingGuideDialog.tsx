@@ -13,13 +13,13 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BOXLITE_DOCS_URL } from '@/constants/ExternalLinks'
 import { useApi } from '@/hooks/useApi'
 import { useConfig } from '@/hooks/useConfig'
 import { useSelectedOrganization } from '@/hooks/useSelectedOrganization'
 import { handleApiError } from '@/lib/error-handling'
+import { cn } from '@/lib/utils'
 import { getOnboardingCodeExamples, type OnboardingLanguage } from '@/lib/onboarding-code-examples'
 import type { OnboardingProgress } from '@/lib/onboarding-progress'
 import {
@@ -215,22 +215,24 @@ export function OnboardingGuideDialog({ open, onOpenChange, onProgressChange, pr
                         This key is visible once. Copy it now, then export it as BOXLITE_API_KEY before running the
                         script.
                       </p>
-                      <div className="relative">
-                        <Textarea
-                          readOnly
-                          value={createdApiKey.value}
-                          rows={4}
-                          className="min-h-24 resize-none break-all pr-12 font-mono text-xs leading-5"
-                        />
+                      <div className="flex flex-col gap-3 rounded-md border border-primary/20 bg-primary/5 p-3 sm:flex-row sm:items-center">
+                        <div className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-3 shadow-xs">
+                          <code className="block overflow-x-auto whitespace-nowrap font-mono text-xs leading-5 text-foreground scrollbar-sm">
+                            {createdApiKey.value}
+                          </code>
+                        </div>
                         <Button
                           type="button"
-                          variant="ghost"
-                          size="icon-xs"
+                          variant="default"
                           aria-label="Copy API key"
-                          className="absolute right-2 top-2"
+                          className={cn(
+                            'w-full sm:w-auto',
+                            isApiKeyCopied && 'bg-success text-white hover:bg-success/90',
+                          )}
                           onClick={() => copyToClipboard(createdApiKey.value)}
                         >
                           {isApiKeyCopied ? <Check className="size-4" /> : <ClipboardIcon className="size-4" />}
+                          {isApiKeyCopied ? 'Copied' : 'Copy key'}
                         </Button>
                       </div>
                     </div>
