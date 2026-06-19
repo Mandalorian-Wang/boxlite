@@ -5,7 +5,6 @@
  */
 
 import { CreateApiKeyDialog } from '@/components/CreateApiKeyDialog'
-import { PageContent, PageHeader, PageLayout, PageTitle } from '@/components/PageLayout'
 import { CREATE_API_KEY_PERMISSIONS_GROUPS } from '@/constants/CreateApiKeyPermissionsGroups'
 import { useRevokeApiKeyMutation } from '@/hooks/mutations/useRevokeApiKeyMutation'
 import { useApiKeysQuery } from '@/hooks/queries/useApiKeysQuery'
@@ -73,26 +72,23 @@ const Keys: React.FC = () => {
   )
 
   return (
-    <PageLayout>
-      <PageHeader>
-        <PageTitle>API Keys</PageTitle>
+    <div className="px-[34px] pb-[26px] pt-[26px]">
+      <div className="mb-5 flex items-center justify-between">
+        <h2 className="font-mono text-[13px] font-medium uppercase tracking-[3px] text-muted-foreground">API Keys</h2>
         <CreateApiKeyDialog
-          className="ml-auto"
           availablePermissions={availablePermissions}
           apiUrl={apiUrl}
           organizationId={selectedOrganization?.id}
         />
-      </PageHeader>
+      </div>
 
-      <PageContent>
-        <ApiKeyTable
-          data={apiKeysQuery.data ?? []}
-          loading={apiKeysQuery.isLoading || apiKeysQuery.isRefetching}
-          isLoadingKey={isLoadingKey}
-          onRevoke={handleRevoke}
-        />
-      </PageContent>
-    </PageLayout>
+      <ApiKeyTable
+        data={apiKeysQuery.data ?? []}
+        loading={apiKeysQuery.isLoading || apiKeysQuery.isRefetching}
+        isLoadingKey={isLoadingKey}
+        onRevoke={handleRevoke}
+      />
+    </div>
   )
 }
 
