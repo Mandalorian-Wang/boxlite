@@ -311,7 +311,7 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
           aria-label="Open profile menu"
           className="inline-flex h-full items-center gap-2.5 border-l border-border px-4 text-[13px] font-medium text-foreground outline-none transition-colors hover:bg-card data-[state=open]:bg-card"
         >
-          <span className="flex size-[23px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand text-[9px] font-extrabold text-white">
+          <span className="flex size-[23px] shrink-0 items-center justify-center overflow-hidden bg-brand text-[9px] font-extrabold text-white">
             {user?.profile.picture ? (
               <img src={user.profile.picture} alt={userName} className="h-full w-full object-cover" />
             ) : (
