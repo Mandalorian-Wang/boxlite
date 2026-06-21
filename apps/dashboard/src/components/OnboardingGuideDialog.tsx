@@ -210,15 +210,7 @@ export function OnboardingGuideDialog({ open, onOpenChange, onProgressChange, pr
                   <div className="mt-[6px] font-mono text-[10px] uppercase tracking-[1px] text-muted-foreground/70">
                     coming soon
                   </div>
-                  <div className="mt-auto flex gap-[3px] pt-4">
-                    {Array.from({ length: 10 }).map((_, i) => (
-                      <span
-                        key={i}
-                        className="h-[5px] flex-1"
-                        style={{ animation: `seg-wave 1.8s ${(i * 0.09).toFixed(2)}s infinite` }}
-                      />
-                    ))}
-                  </div>
+                  <div className="halftone-brand mt-auto h-[34px] w-full opacity-60" />
                 </div>
               </div>
             </div>

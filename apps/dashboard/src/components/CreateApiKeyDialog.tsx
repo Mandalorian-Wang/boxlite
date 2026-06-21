@@ -23,7 +23,7 @@ import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { handleApiError } from '@/lib/error-handling'
 import { cn } from '@/lib/utils'
 import { CreateApiKeyPermissionsEnum } from '@boxlite-ai/api-client'
-import { Calendar, Info, Plus } from 'lucide-react'
+import { Calendar, Info, Plus } from '@/components/ui/icon'
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 

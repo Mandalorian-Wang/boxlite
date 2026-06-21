@@ -72,9 +72,10 @@ const Keys: React.FC = () => {
   )
 
   return (
-    <div className="px-[34px] pb-[26px] pt-[26px]">
-      <div className="mb-5 flex items-center justify-between">
-        <h2 className="font-mono text-[13px] font-medium uppercase tracking-[3px] text-muted-foreground">API Keys</h2>
+    <div className="flex h-[calc(100svh-60px)] min-h-0 flex-col px-[34px] pt-[26px]">
+      {/* header — same hierarchy as the Sandboxes page */}
+      <div className="mb-[22px] flex items-end justify-between">
+        <h1 className="font-mono text-[22px] font-medium leading-none tracking-[-0.5px]">API Keys</h1>
         <CreateApiKeyDialog
           availablePermissions={availablePermissions}
           apiUrl={apiUrl}

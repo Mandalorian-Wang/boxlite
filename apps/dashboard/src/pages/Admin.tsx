@@ -24,7 +24,7 @@ import { ADMIN_VIEWS, adminViewFromParam, type AdminView } from '@/components/ad
 import { useAdminActions, useAdminBoxes, useAdminOverview, useAdminRunners } from '@/components/admin/useAdminData'
 import { RoutePath } from '@/enums/RoutePath'
 import { cn } from '@/lib/utils'
-import { Activity, Search, Server, UsersRound, type LucideIcon } from 'lucide-react'
+import { Activity, Search, Server, UsersRound, type LucideIcon } from '@/components/ui/icon'
 import React, { useEffect, useState } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 

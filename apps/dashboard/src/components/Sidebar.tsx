@@ -12,6 +12,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -41,7 +44,7 @@ import {
   SearchIcon,
   ShieldCheck,
   SunIcon,
-} from 'lucide-react'
+} from '@/components/ui/icon'
 import { usePostHog } from 'posthog-js/react'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo } from 'react'
@@ -302,50 +305,7 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
         <span className="hidden sm:inline">Quickstart</span>
       </button>
 
-      {/* organization switcher */}
-      {selectedOrganization && (
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            aria-label="Switch organization"
-            className="inline-flex h-full max-w-[220px] items-center gap-2 border-l border-border px-[18px] text-[13px] font-medium text-foreground outline-none transition-colors hover:bg-card data-[state=open]:bg-card"
-          >
-            <Building2 className="size-3.5 shrink-0 text-muted-foreground" />
-            <span className="truncate">{selectedOrganization.name}</span>
-            <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-[16rem]">
-            <DropdownMenuLabel className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              Organizations
-            </DropdownMenuLabel>
-            {organizations.map((org) => {
-              const active = org.id === selectedOrganization.id
-              return (
-                <DropdownMenuItem
-                  key={org.id}
-                  className="cursor-pointer justify-between"
-                  onClick={() => handleSelectOrganization(org.id)}
-                >
-                  <span className="truncate">{org.name}</span>
-                  {active && <Check className="size-4 shrink-0 text-brand" />}
-                </DropdownMenuItem>
-              )
-            })}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild className="cursor-pointer">
-              <Link to={RoutePath.SETTINGS}>
-                <Building2 className="size-4" />
-                Organization settings
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={copyOrgId}>
-              <Copy className="size-4" />
-              Copy organization ID
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-
-      {/* profile menu */}
+      {/* profile menu (organization switcher tucked inside) */}
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label="Open profile menu"
@@ -362,6 +322,60 @@ export function Sidebar({ isBannerVisible }: SidebarProps) {
           <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-[18rem]">
+          <DropdownMenuLabel className="flex flex-col gap-0.5">
+            <span className="truncate text-[13px] font-semibold text-foreground">{userName}</span>
+            {user?.profile.email && user.profile.email !== userName && (
+              <span className="truncate font-mono text-[11px] font-normal text-muted-foreground">
+                {user.profile.email}
+              </span>
+            )}
+          </DropdownMenuLabel>
+          {selectedOrganization && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="cursor-pointer gap-2">
+                  <Building2 className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
+                      Organization
+                    </span>
+                    <span className="truncate">{selectedOrganization.name}</span>
+                  </span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="min-w-[15rem]">
+                  <DropdownMenuLabel className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                    Switch organization
+                  </DropdownMenuLabel>
+                  {organizations.map((org) => {
+                    const active = org.id === selectedOrganization.id
+                    return (
+                      <DropdownMenuItem
+                        key={org.id}
+                        className="cursor-pointer justify-between"
+                        onClick={() => handleSelectOrganization(org.id)}
+                      >
+                        <span className="truncate">{org.name}</span>
+                        {active && <Check className="size-4 shrink-0 text-brand" />}
+                      </DropdownMenuItem>
+                    )
+                  })}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link to={RoutePath.SETTINGS}>
+                      <Building2 className="size-4" />
+                      Organization settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" onClick={copyOrgId}>
+                    <Copy className="size-4" />
+                    Copy organization ID
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            </>
+          )}
+          <DropdownMenuSeparator />
           <ThemeMenuItems theme={theme} setTheme={setTheme} />
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild className="cursor-pointer">

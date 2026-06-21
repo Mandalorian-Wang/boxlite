@@ -5,7 +5,7 @@
  */
 
 import { RoutePath } from '@/enums/RoutePath'
-import { Clock, Cpu, Database, MemoryStick, type LucideIcon } from 'lucide-react'
+import { Clock, Cpu, Database, MemoryStick, type LucideIcon } from '@/components/ui/icon'
 import { Link } from 'react-router-dom'
 
 const DIMENSIONS: { icon: LucideIcon; name: string; unit: string }[] = [

@@ -8,7 +8,7 @@ import { Logo } from '@/assets/Logo'
 import { RoutePath } from '@/enums/RoutePath'
 import { useApi } from '@/hooks/useApi'
 import { useSelectedOrganization } from '@/hooks/useSelectedOrganization'
-import { Check, Loader2, X } from 'lucide-react'
+import { Check, Loader2, X } from '@/components/ui/icon'
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 

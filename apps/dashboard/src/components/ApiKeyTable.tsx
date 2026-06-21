@@ -7,16 +7,7 @@
 import { CREATE_API_KEY_PERMISSIONS_GROUPS } from '@/constants/CreateApiKeyPermissionsGroups'
 import { getRelativeTimeString } from '@/lib/utils'
 import { ApiKeyList, ApiKeyListPermissionsEnum } from '@boxlite-ai/api-client'
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  KeyRound,
-  Loader2,
-  Trash2,
-} from 'lucide-react'
+import { KeyRound, Loader2, Trash2 } from '@/components/ui/icon'
 import { useMemo } from 'react'
 import { Badge } from './ui/badge'
 import {
@@ -39,33 +30,36 @@ interface DataTableProps {
   onRevoke: (key: ApiKeyList) => void
 }
 
-const GRID = 'grid-cols-[1.4fr_1.6fr_1.2fr_1fr_1fr_1fr_44px]'
+// Mirrors the Sandboxes (BoxTable) layout: borderless full-height column, header with a
+// bottom rule, hover-highlighted rows, and a plain "Showing N" footer.
+const GRID = 'grid-cols-[1.4fr_1.6fr_1.2fr_1fr_1fr_1fr_44px] gap-x-4'
 
 export function ApiKeyTable({ data, loading, isLoadingKey, onRevoke }: DataTableProps) {
   return (
-    <div>
-      <div className="border border-border">
-        {/* header */}
-        <div
-          className={`grid ${GRID} border-b border-border px-5 py-[15px] font-mono text-[10px] uppercase tracking-[1.2px] text-muted-foreground`}
-        >
-          <span>Name</span>
-          <span>Key</span>
-          <span>Permissions</span>
-          <span>Created</span>
-          <span>Last Used</span>
-          <span>Expires</span>
-          <span />
-        </div>
+    <div className="flex min-h-0 flex-1 flex-col">
+      {/* header */}
+      <div
+        className={`grid ${GRID} flex-none items-center border-b border-border px-[18px] pb-[11px] font-mono text-[10px] uppercase tracking-[1.2px] text-muted-foreground`}
+      >
+        <span>Name</span>
+        <span>Key</span>
+        <span>Permissions</span>
+        <span>Created</span>
+        <span>Last Used</span>
+        <span>Expires</span>
+        <span />
+      </div>
 
+      {/* rows */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className={`grid ${GRID} items-center border-b border-border px-5 py-4 last:border-b-0`}>
+            <div key={i} className={`grid ${GRID} items-center border-b border-border px-[18px] py-3`}>
               <div className="h-4 w-3/4 animate-pulse bg-card" />
             </div>
           ))
         ) : data.length === 0 ? (
-          <div className="flex flex-col items-center px-6 pb-20 pt-[72px] text-center">
+          <div className="flex h-full flex-col items-center justify-center px-6 text-center">
             <KeyRound className="size-14 text-muted-foreground opacity-70" strokeWidth={1.4} />
             <div className="mt-[22px] text-[17px] font-semibold">No API Keys yet.</div>
             <div className="mt-[18px] max-w-[440px] text-[13.5px] leading-relaxed text-muted-foreground">
@@ -90,7 +84,7 @@ export function ApiKeyTable({ data, loading, isLoadingKey, onRevoke }: DataTable
             return (
               <div
                 key={`${key.userId}-${key.name}`}
-                className={`grid ${GRID} items-center border-b border-border px-5 py-4 text-[13px] last:border-b-0 ${
+                className={`grid ${GRID} items-center border-b border-border px-[18px] py-3 text-[13px] transition-colors hover:bg-card ${
                   busy ? 'pointer-events-none opacity-50' : ''
                 }`}
               >
@@ -148,30 +142,11 @@ export function ApiKeyTable({ data, loading, isLoadingKey, onRevoke }: DataTable
         )}
       </div>
 
-      {/* footer / pagination (single page) */}
-      <div className="mt-[18px] flex items-center justify-between">
-        <div className="flex items-center gap-[18px]">
-          <div className="flex h-10 items-center gap-[10px] border border-border px-[14px] font-mono text-[12px] text-muted-foreground">
-            25 per page
-            <ChevronDown className="size-3.5" />
-          </div>
-          <span className="font-mono text-[11px] tracking-[0.5px] text-muted-foreground">
-            {data.length} total item{data.length === 1 ? '' : 's'}
-          </span>
-        </div>
-        <div className="flex items-center gap-[14px]">
-          <span className="font-mono text-[11px] tracking-[0.5px] text-muted-foreground">Page 1 of 1</span>
-          <div className="flex gap-[7px]">
-            {[ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight].map((Icon, i) => (
-              <div
-                key={i}
-                className="flex size-9 cursor-not-allowed items-center justify-center border border-border text-muted-foreground opacity-40"
-              >
-                <Icon className="size-3.5" />
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* footer */}
+      <div className="flex flex-none items-center justify-between px-0 py-4 font-mono text-[10px] uppercase tracking-[1px] text-muted-foreground">
+        <span>
+          Showing {data.length} key{data.length === 1 ? '' : 's'}
+        </span>
       </div>
     </div>
   )

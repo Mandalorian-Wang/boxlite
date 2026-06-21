@@ -307,3 +307,13 @@ body {
 ::selection {
   @apply bg-brand text-brand-foreground;
 }
+
+/* Halftone / Ben-Day dot texture — for placeholders, empty states, "coming soon" tiles. */
+.halftone {
+  background-image: radial-gradient(hsl(var(--muted-foreground) / 0.55) 1px, transparent 1.6px);
+  background-size: 6px 6px;
+}
+.halftone-brand {
+  background-image: radial-gradient(hsl(var(--brand) / 0.5) 1px, transparent 1.6px);
+  background-size: 6px 6px;
+}

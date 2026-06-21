@@ -29,7 +29,7 @@ import {
   RotateCcw,
   SquareTerminal,
   Trash2,
-} from 'lucide-react'
+} from '@/components/ui/icon'
 import { type ReactNode } from 'react'
 import { BoxTableProps } from './types'
 
@@ -198,7 +198,7 @@ export function BoxTable({
                 {/* status */}
                 <span className="flex items-center gap-[7px] font-mono text-[11px] tracking-[0.5px]">
                   <span
-                    className="size-[6px] rounded-full"
+                    className="size-[7px]"
                     style={{ background: st.color, boxShadow: `0 0 6px ${st.color}` }}
                   />
                   <span style={{ color: st.color }}>{st.label}</span>

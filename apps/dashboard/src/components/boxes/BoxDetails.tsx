@@ -60,7 +60,7 @@ import {
   RotateCcw,
   SquareTerminal,
   Trash2,
-} from 'lucide-react'
+} from '@/components/ui/icon'
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
