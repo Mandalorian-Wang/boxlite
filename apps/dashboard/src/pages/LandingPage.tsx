@@ -6,6 +6,7 @@
 
 import boxliteLogoStacked from '@/assets/boxlite-logo-stacked.png'
 import LoadingFallback from '@/components/LoadingFallback'
+import { Github } from '@/components/ui/icon'
 import { RoutePath } from '@/enums/RoutePath'
 import { useState } from 'react'
 import { useAuth } from 'react-oidc-context'
@@ -59,13 +60,13 @@ const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          {/* tabs */}
-          <div className="mb-6 flex border-b border-border">
+          {/* tabs — grayscale fill selection, consistent with the top nav active state */}
+          <div className="mb-6 flex border border-border">
             <button
               type="button"
               onClick={() => setMode('login')}
-              className={`-mb-px flex-1 border-b-2 pb-[13px] text-center text-[12px] tracking-[1.5px] transition-colors ${
-                isLogin ? 'border-brand text-foreground' : 'border-transparent text-muted-foreground'
+              className={`flex-1 py-[11px] text-center text-[12px] tracking-[1.5px] transition-colors ${
+                isLogin ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-card hover:text-foreground'
               }`}
             >
               SIGN IN
@@ -73,8 +74,8 @@ const LandingPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setMode('signup')}
-              className={`-mb-px flex-1 border-b-2 pb-[13px] text-center text-[12px] tracking-[1.5px] transition-colors ${
-                !isLogin ? 'border-brand text-foreground' : 'border-transparent text-muted-foreground'
+              className={`flex-1 border-l border-border py-[11px] text-center text-[12px] tracking-[1.5px] transition-colors ${
+                !isLogin ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-card hover:text-foreground'
               }`}
             >
               SIGN UP
@@ -88,20 +89,19 @@ const LandingPage: React.FC = () => {
               onClick={go}
               className="flex items-center justify-center gap-[9px] border border-border px-3 py-3 text-[12.5px] transition-colors hover:border-muted-foreground hover:bg-card"
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" className="shrink-0">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"
-                />
-                <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z" />
-                <path
-                  fill="#EA4335"
-                  d="M12 4.75c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.46 14.97.5 12 .5A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.36 12 4.75z"
-                />
+              {/* pixel-art "G" — pixelarticons has no Google mark, so this matches the 8-bit set */}
+              <svg width="15" height="15" viewBox="0 0 5 7" fill="currentColor" shapeRendering="crispEdges" className="shrink-0">
+                <rect x="1" y="0" width="3" height="1" />
+                <rect x="0" y="1" width="1" height="1" />
+                <rect x="4" y="1" width="1" height="1" />
+                <rect x="0" y="2" width="1" height="1" />
+                <rect x="0" y="3" width="1" height="1" />
+                <rect x="2" y="3" width="3" height="1" />
+                <rect x="0" y="4" width="1" height="1" />
+                <rect x="4" y="4" width="1" height="1" />
+                <rect x="0" y="5" width="1" height="1" />
+                <rect x="4" y="5" width="1" height="1" />
+                <rect x="1" y="6" width="3" height="1" />
               </svg>
               Google
             </button>
@@ -110,9 +110,7 @@ const LandingPage: React.FC = () => {
               onClick={go}
               className="flex items-center justify-center gap-[9px] border border-border px-3 py-3 text-[12.5px] transition-colors hover:border-muted-foreground hover:bg-card"
             >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" className="shrink-0">
-                <path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.5v-1.8c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.6.1-3.2 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0C17 4.4 18 4.7 18 4.7c.6 1.6.2 2.9.1 3.2.8.8 1.2 1.8 1.2 3.1 0 4.5-2.7 5.5-5.3 5.8.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5z" />
-              </svg>
+              <Github className="size-[15px] shrink-0" />
               GitHub
             </button>
           </div>
