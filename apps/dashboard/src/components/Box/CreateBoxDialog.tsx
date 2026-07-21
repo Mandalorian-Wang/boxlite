@@ -24,6 +24,7 @@ import { handleApiError } from '@/lib/error-handling'
 import { cn } from '@/lib/utils'
 import type { Box } from '@boxlite-ai/api-client'
 import { ChevronDown, Plus } from '@/components/ui/icon'
+import { RATES, boxHourlyCost, fmtUsd } from '@/components/billing/rates'
 import { useEffect, useState } from 'react'
 import { createSearchParams, generatePath, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -279,13 +280,8 @@ export const CreateBoxDialog = ({
           </div>
         </div>
 
-        {/* price — billing is not enabled yet, so everything is free ($0) */}
-        <div className="flex shrink-0 items-baseline justify-between border-t border-border px-6 py-4">
-          <span className="font-mono text-[10px] uppercase tracking-[1.2px] text-muted-foreground">Price per hour</span>
-          <span className="font-mono text-[24px] font-bold tracking-[-0.5px]">
-            $0.00 <span className="text-[11px] font-normal text-muted-foreground">/ hr · free in preview</span>
-          </span>
-        </div>
+        {/* price — 按所选资源实时估算每小时成本 + 可展开计算口径 */}
+        <BoxCostEstimate cpu={cpu} memory={memory} disk={disk} />
 
         {/* footer */}
         <div className="flex shrink-0 justify-end gap-[10px] border-t border-border px-6 py-4">
@@ -307,5 +303,45 @@ export const CreateBoxDialog = ({
         </div>
       </DialogContent>
     </Dialog>
+  )
+}
+
+// 创建 Box 时的每小时成本预估 + 可展开计算口径（wall-time：running 即计 CPU/RAM，Disk 计存在时长）
+function BoxCostEstimate({ cpu, memory, disk }: { cpu: number; memory: number; disk: number }) {
+  const [open, setOpen] = useState(false)
+  const c = boxHourlyCost({ cpu, memory, disk })
+  return (
+    <div className="shrink-0 border-t border-border">
+      <div className="flex items-baseline justify-between px-6 pt-4">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[1.2px] text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <span className="text-[11px]">{open ? '▾' : '▸'}</span>
+          Est. price / hour
+        </button>
+        <span className="font-mono text-[24px] font-bold tracking-[-0.5px]">
+          {fmtUsd(c.total)}
+          <span className="text-[11px] font-normal text-muted-foreground"> / hr</span>
+        </span>
+      </div>
+      {open ? (
+        <div className="px-6 pb-4 pt-3 font-mono text-[11px] text-muted-foreground">
+          <div className="flex justify-between py-[3px]">
+            <span>CPU · {cpu} vCPU × {fmtUsd(RATES.cpuPerVcpuHr)}/vCPU·hr</span>
+            <span className="tabular-nums text-foreground">{fmtUsd(c.cpuCost)}</span>
+          </div>
+          <div className="flex justify-between py-[3px]">
+            <span>RAM · {memory} GiB × {fmtUsd(RATES.ramPerGiBHr)}/GiB·hr</span>
+            <span className="tabular-nums text-foreground">{fmtUsd(c.ramCost)}</span>
+          </div>
+          <div className="flex justify-between py-[3px]">
+            <span>Disk · {disk} GiB × {fmtUsd(RATES.diskPerGiBHr, 6)}/GiB·hr</span>
+            <span className="tabular-nums text-foreground">{fmtUsd(c.diskCost)}</span>
+          </div>
+        </div>
+      ) : null}
+    </div>
   )
 }
