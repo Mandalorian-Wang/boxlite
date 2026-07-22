@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: AGPL-3.0
  */
 
-// TEMP(preview): Billing 入口下分 Plan / Usage / Billing 三个 Tab。
+// TEMP(preview): Billing 入口下分 Overview / Usage / Wallet 三个 Tab。
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BillingPanel } from '@/components/billing/BillingPanel'
 import { SubscriptionPlans } from '@/components/billing/SubscriptionPlans'
@@ -17,22 +17,22 @@ const TAB_TRIGGER_LAST =
 
 function Billing() {
   return (
-    <Tabs defaultValue="plan" className="w-full gap-0">
+    <Tabs defaultValue="overview" className="w-full gap-0">
       <div className="px-6 pt-6">
         <h1 className="font-display text-2xl font-semibold leading-none tracking-tight">Billing</h1>
         <TabsList className="mt-5 h-9 gap-0 rounded-none border border-border bg-transparent p-0">
-          <TabsTrigger value="plan" className={TAB_TRIGGER}>
-            Plan
+          <TabsTrigger value="overview" className={TAB_TRIGGER}>
+            Overview
           </TabsTrigger>
           <TabsTrigger value="usage" className={TAB_TRIGGER}>
             Usage
           </TabsTrigger>
           <TabsTrigger value="billing" className={TAB_TRIGGER_LAST}>
-            Invoices
+            Wallet
           </TabsTrigger>
         </TabsList>
       </div>
-      <TabsContent value="plan" className="mt-0">
+      <TabsContent value="overview" className="mt-0">
         <div className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-5 2xl:px-0">
           <SubscriptionPlans />
         </div>

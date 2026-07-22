@@ -24,6 +24,8 @@ import {
   PLANS,
   CURRENT_TIER,
   DEMO_USER_STATE,
+  DEMO_QUOTA_USED,
+  WALLET_BALANCE,
   FREE_CREDIT_REMAINING,
   FREE_CREDIT_TOTAL,
   type SubscriptionPlan,
@@ -33,6 +35,7 @@ import {
 
 function ActivePlanBanner() {
   const plan = PLANS.find((p) => p.tier === CURRENT_TIER)!
+  const quotaTotal = plan.quotaUsd ?? 0
 
   return (
     <div className="border border-border bg-card">
@@ -50,14 +53,14 @@ function ActivePlanBanner() {
             active
           </span>
         </div>
-        <span className="ml-auto font-mono text-[11px] text-muted-foreground">{plan.audience}</span>
+        <span className="ml-auto font-mono text-[11px] text-muted-foreground">${plan.priceMonthly}/mo · {plan.audience}</span>
       </div>
 
-      {/* Metrics band */}
+      {/* High-level metrics */}
       <div className="flex flex-col gap-6 border-t border-border px-[22px] py-5 sm:flex-row sm:gap-14">
-        <Metric label="Included quota" value={`$${plan.quotaUsd}`} unit="/ cycle" />
-        <Metric label="Concurrency limit" value={String(plan.concurrencyWall)} unit="boxes" />
-        <Metric label="Above limit" value={plan.burstPolicy.includes('429') ? 'Rejected (429)' : '1.5× price'} />
+        <Metric label="Subscription" value={plan.name} unit={`$${plan.priceMonthly}/mo`} />
+        <Metric label="Wallet balance" value={`$${WALLET_BALANCE.toFixed(2)}`} />
+        <Metric label="Quota consumed" value={`$${DEMO_QUOTA_USED.toFixed(2)}`} unit={`/ $${quotaTotal.toFixed(2)}`} />
       </div>
     </div>
   )
@@ -157,12 +160,7 @@ function PlanCard({ plan, onSwitch, freeTrial }: { plan: SubscriptionPlan; onSwi
         <SpecRow label="Leverage" value={plan.quotaLeverage ?? '—'} />
         <SpecRow
           label="Concurrency"
-          value={plan.concurrencyWall === 'unlimited' ? 'Unlimited' : `${plan.concurrencyWall} boxes`}
-        />
-        <SpecRow
-          label="Burst"
-          value={plan.burstPolicy}
-          highlight={plan.burstPolicy.includes('429')}
+          value={plan.concurrencyLimit === 'unlimited' ? 'Unlimited' : `${plan.concurrencyLimit} boxes`}
         />
       </div>
 
