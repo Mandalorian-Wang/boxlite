@@ -9,10 +9,12 @@ import { BalanceLowBanner } from '@/components/billing/BalanceLowBanner'
 import { BillingAlerts } from '@/components/billing/BillingAlerts'
 import { PlanSection } from '@/components/billing/PlanSection'
 import { UsageSection } from '@/components/billing/UsageSection'
+import { ReferralPrompt, ReferralsSection, useReferralEarnedCents } from '@/components/billing/ReferralsSection'
 import { WalletSection } from '@/components/billing/WalletSection'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RoutePath } from '@/enums/RoutePath'
 import { useConfig } from '@/hooks/useConfig'
+import { formatAmount } from '@/lib/utils'
 import { Clock, Cpu, Database, MemoryStick, type LucideIcon } from '@/components/ui/icon'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -90,6 +92,7 @@ function Billing() {
   const config = useConfig()
   // Controlled, so the page-level balance warning can send the user to Wallet.
   const [tab, setTab] = useState('overview')
+  const referralEarnedCents = useReferralEarnedCents()
 
   if (!config.billingApiUrl) {
     return <BillingComingSoon />
@@ -101,7 +104,7 @@ function Billing() {
         <div className="pt-6">
           <h1 className="font-display text-2xl font-semibold leading-none tracking-tight">Billing</h1>
           <div className="mt-4 w-full empty:hidden">
-            <BalanceLowBanner onGoToWallet={() => setTab('wallet')} />
+            <BalanceLowBanner onGoToWallet={() => setTab('wallet')} onEarnCredit={() => setTab('referrals')} />
           </div>
           <TabsList className="mt-5 h-9 gap-0 rounded-none border border-border bg-transparent p-0">
             <TabsTrigger value="overview" className={TAB_TRIGGER}>
@@ -110,8 +113,18 @@ function Billing() {
             <TabsTrigger value="usage" className={TAB_TRIGGER}>
               Usage
             </TabsTrigger>
-            <TabsTrigger value="wallet" className={TAB_TRIGGER_LAST}>
+            <TabsTrigger value="wallet" className={TAB_TRIGGER}>
               Wallet
+            </TabsTrigger>
+            <TabsTrigger value="referrals" className={TAB_TRIGGER_LAST}>
+              Referrals
+              {/* Shown only when there is money to see — a badge reading 0 is a
+                  negative signal. Reads the same tally the page does. */}
+              {referralEarnedCents > 0 && (
+                <span className="ml-1.5 bg-brand/15 px-1.5 py-0.5 font-mono text-[10px] leading-none text-brand">
+                  {formatAmount(referralEarnedCents)}
+                </span>
+              )}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -119,6 +132,7 @@ function Billing() {
           <div className={TAB_PANE}>
             <div className="mb-8 flex flex-col gap-4 empty:hidden">
               <BillingAlerts />
+              <ReferralPrompt onOpenReferrals={() => setTab('referrals')} />
             </div>
             <PlanSection />
           </div>
@@ -131,6 +145,11 @@ function Billing() {
         <TabsContent value="wallet">
           <div className={TAB_PANE}>
             <WalletSection />
+          </div>
+        </TabsContent>
+        <TabsContent value="referrals">
+          <div className={TAB_PANE}>
+            <ReferralsSection />
           </div>
         </TabsContent>
       </div>

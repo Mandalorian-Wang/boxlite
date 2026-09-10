@@ -76,11 +76,13 @@ function BalanceWarningBanner({
   balanceCents,
   contained = false,
   onAction,
+  onEarnCredit,
   warning,
 }: {
   balanceCents: number
   contained?: boolean
   onAction?: () => void
+  onEarnCredit?: () => void
   warning: BalanceWarning
 }) {
   const { title, destructive } = COPY[warning.level]
@@ -114,17 +116,29 @@ function BalanceWarningBanner({
         </span>
       </div>
       {onAction && (
-        <button
-          className={cn(
-            'border px-4 py-2 font-mono text-[12px] transition-colors',
-            destructive
-              ? 'border-destructive/60 text-destructive hover:bg-destructive/10'
-              : 'border-warning/60 text-warning hover:bg-warning/10',
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            className={cn(
+              'border px-4 py-2 font-mono text-[12px] transition-colors',
+              destructive
+                ? 'border-destructive/60 text-destructive hover:bg-destructive/10'
+                : 'border-warning/60 text-warning hover:bg-warning/10',
+            )}
+            onClick={onAction}
+          >
+            Top up →
+          </button>
+          {/* PROTOTYPE: the second way out of an empty wallet. Quieter on
+              purpose — topping up is still the answer this banner is pushing. */}
+          {onEarnCredit && (
+            <button
+              className="px-3 py-2 font-mono text-[12px] text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
+              onClick={onEarnCredit}
+            >
+              Earn credit
+            </button>
           )}
-          onClick={onAction}
-        >
-          Top up →
-        </button>
+        </div>
       )}
     </div>
   )
@@ -134,13 +148,26 @@ function BalanceWarningBanner({
  * Warns on a wallet that cannot fund what comes next. Suspension states are the
  * global banner's job (useSuspensionBanner), not repeated here.
  */
-export function BalanceLowBanner({ onGoToWallet }: { onGoToWallet: () => void }) {
+export function BalanceLowBanner({
+  onGoToWallet,
+  onEarnCredit,
+}: {
+  onGoToWallet: () => void
+  onEarnCredit?: () => void
+}) {
   const { data: wallet } = useOwnerWalletQuery()
   const { data: plan } = useOwnerPlanQuery()
   const warning = balanceWarning(wallet, plan)
   if (!wallet || !warning || warning.level === 'below-threshold') return null
 
-  return <BalanceWarningBanner balanceCents={wallet.ongoingBalanceCents} onAction={onGoToWallet} warning={warning} />
+  return (
+    <BalanceWarningBanner
+      balanceCents={wallet.ongoingBalanceCents}
+      onAction={onGoToWallet}
+      onEarnCredit={onEarnCredit}
+      warning={warning}
+    />
+  )
 }
 
 /** Contextual threshold warning for the Wallet Balance panel. */
