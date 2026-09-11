@@ -301,6 +301,24 @@ export function QuickstartAgentHandoff({
     setTimeout(() => setCopied(null), 1600)
   }, [buildPrompt, handoff])
 
+  // Three stages, one row each, and nothing else moves: the card is the only
+  // thing on this screen that changes after the copy, so it is where the eye
+  // should be able to rest.
+  const stage: 'waiting' | 'building' | 'live' = reached ? 'live' : agentBox ? 'building' : 'waiting'
+  const shownBox = finishedBox ?? agentBox
+
+  // The user copies the prompt and leaves for their agent; the tab title is the
+  // one thing they can see from another window. Say it there, and put it back.
+  useEffect(() => {
+    if (stage === 'waiting') return
+    const previous = document.title
+    const name = shownBox?.name ?? shownBox?.id ?? 'your box'
+    document.title = stage === 'live' ? `● ${name} is live — BoxLite` : `◌ ${name} is building — BoxLite`
+    return () => {
+      document.title = previous
+    }
+  }, [stage, shownBox?.name, shownBox?.id])
+
   if (permissionsKnown && !canCreateApiKey) {
     return (
       <p className="px-8 py-8 text-[12.5px] leading-relaxed text-muted-foreground">
@@ -308,12 +326,6 @@ export function QuickstartAgentHandoff({
       </p>
     )
   }
-
-  // Three stages, one row each, and nothing else moves: the card is the only
-  // thing on this screen that changes after the copy, so it is where the eye
-  // should be able to rest.
-  const stage: 'waiting' | 'building' | 'live' = reached ? 'live' : agentBox ? 'building' : 'waiting'
-  const shownBox = finishedBox ?? agentBox
 
   return (
     <div className="px-8 pb-6 pt-6">
@@ -366,6 +378,9 @@ export function QuickstartAgentHandoff({
           'mt-2 flex items-center gap-3 border px-4 py-3 transition-colors',
           stage === 'live' ? 'border-brand bg-[hsl(var(--brand)/0.06)]' : 'border-border',
         )}
+        // Re-mount on each stage so the row arrives rather than flips.
+        key={stage}
+        style={{ animation: 'stat-in .35s ease' }}
       >
         <span
           className={cn(

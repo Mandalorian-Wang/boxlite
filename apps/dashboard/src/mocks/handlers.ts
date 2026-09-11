@@ -87,6 +87,11 @@ export const handlers = [
     // show real per-state counts in mock, not just the unfiltered total.
     const searchParams = new URL(request.url).searchParams
     const states = searchParams.getAll('states').flatMap((s) => s.split(','))
+    // A brand-new account has no boxes, which static fixtures cannot show;
+    // `localStorage['qs-empty-demo'] = '1'` empties the list for that screen.
+    if (globalThis.localStorage?.getItem('qs-empty-demo') === '1') {
+      return HttpResponse.json({ ...MOCK_PAGINATED_BOXES, items: [], total: 0 })
+    }
     if (states.length === 0) {
       const agentBox = quickstartHandoffDemoBox()
       if (!agentBox) return HttpResponse.json(MOCK_PAGINATED_BOXES)
@@ -99,7 +104,11 @@ export const handlers = [
     return HttpResponse.json({ items, total: items.length, page: 1, totalPages: 1 })
   }),
   http.get(`${API_URL}/box/:boxIdOrName`, ({ params }) => {
-    const box = MOCK_BOXES.find((b) => b.id === params.boxIdOrName) ?? MOCK_BOXES[0]
+    const demo = quickstartHandoffDemoBox()
+    const box =
+      (demo && demo.id === params.boxIdOrName ? demo : undefined) ??
+      MOCK_BOXES.find((b) => b.id === params.boxIdOrName) ??
+      MOCK_BOXES[0]
     return box ? HttpResponse.json(box) : new HttpResponse(null, { status: 404 })
   }),
 

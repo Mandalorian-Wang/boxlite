@@ -49,6 +49,8 @@ import { useAuth } from 'react-oidc-context'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { BoxNetworkSection } from './BoxNetworkSection'
+import { BoxCube } from '@/components/BoxCube'
+import { boxCubeState } from '@/lib/box-shape'
 import { BoxTerminalTab } from './BoxTerminalTab'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
@@ -335,9 +337,10 @@ export default function BoxDetails() {
           {/* identity strip */}
           <div className="flex flex-none flex-col gap-4 border-b border-dashed border-border pb-[14px] lg:flex-row lg:items-center lg:gap-[18px]">
             <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-[14px]">
-              <span className="flex min-w-0 items-center gap-[9px]">
+              <span className="flex min-w-0 items-center gap-[12px]">
+                <BoxCube state={boxCubeState(box)} size={28} className="text-foreground" />
                 <span
-                  className="max-w-full truncate text-[20px] font-medium tracking-[-0.4px] sm:max-w-[360px] sm:text-[22px]"
+                  className="max-w-full truncate font-display text-section font-semibold sm:max-w-[360px]"
                   title={getBoxDisplayName(box)}
                 >
                   {getBoxDisplayName(box)}

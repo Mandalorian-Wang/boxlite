@@ -85,62 +85,97 @@ const SCENARIOS = [
 
 type ScenarioId = (typeof SCENARIOS)[number]['id']
 
-// Line drawings in the console's own register — one stroke weight, dotted
-// bars where the dashboard uses dot-matrix, `currentColor` so they take the
-// card's state — and each is its job reduced to a silhouette that reads before
-// the label does: a window an arrow is *leaving*, versus frames nested *inside*
-// a dashed boundary. Brand is spent on exactly one element per drawing.
-const ART_BOX = 'h-[84px] w-full'
-const ART_STROKE = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.5 } as const
-const BRAND_STROKE = { fill: 'none', stroke: 'hsl(var(--brand))', strokeWidth: 1.75 } as const
+// Each card shows the outcome of its job, not the box that produces it. The
+// left one is an app in a browser, reachable on the public web; the right
+// one is code going into an isolated box and a result coming back out.
+// Same register as the rest of the console: one stroke, `currentColor`,
+// brand spent on the one thing that is the point.
+const ART_CLASS = 'h-[92px] w-full'
+const STROKE = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.5 } as const
+const BRAND = 'hsl(var(--brand))'
 
-// Layers are solid, not outlined: a window in front of a box only reads as
-// depth if the front one hides the back one, the way stacked paper does.
-const LAYER_FILL = 'hsl(var(--background))'
-
+/** A browser window with the app laid out inside it, and the globe it is reachable from. */
 function PublishArt() {
   return (
-    <svg viewBox="24 0 232 96" className={ART_BOX} aria-hidden>
-      {/* the box behind, up and to the right */}
-      <rect x="56" y="10" width="166" height="70" {...ART_STROKE} opacity={0.5} />
-      {/* the window in front */}
-      <rect x="40" y="22" width="168" height="68" fill={LAYER_FILL} stroke="currentColor" strokeWidth={1.5} />
-      <path d="M40 40h168" {...ART_STROKE} />
-      <circle cx="50" cy="31" r="2" fill="currentColor" />
-      <circle cx="58" cy="31" r="2" fill="currentColor" />
-      <circle cx="66" cy="31" r="2" fill="currentColor" />
-      <rect x="80" y="27" width="96" height="8" {...ART_STROKE} strokeWidth={1} opacity={0.6} />
-      {/* content, as the dashboard draws numbers: dots */}
-      <path d="M54 54h110M54 64h72M54 74h92" {...ART_STROKE} strokeWidth={3} strokeDasharray="3 3" opacity={0.55} />
-      {/* going public: leaves the window through its edge, then the box's, and
-          touches no corner on the way out */}
-      <path d="M188 44L244 4M228 4h16v16" {...BRAND_STROKE} />
+    <svg viewBox="0 0 256 96" className={ART_CLASS} aria-hidden>
+      {/* window */}
+      <rect
+        x="32"
+        y="8"
+        width="164"
+        height="82"
+        fill="hsl(var(--background))"
+        stroke="currentColor"
+        strokeWidth={1.5}
+      />
+      <path d="M32 24h164" {...STROKE} />
+      <circle cx="41" cy="16" r="1.8" fill="currentColor" />
+      <circle cx="48" cy="16" r="1.8" fill="currentColor" />
+      <circle cx="55" cy="16" r="1.8" fill="currentColor" />
+      {/* address bar, with the address in brand */}
+      <rect x="64" y="11.5" width="124" height="9" {...STROKE} strokeWidth={1} opacity={0.6} />
+      <path d="M69 16h4" stroke={BRAND} strokeWidth={2} />
+      <path d="M77 16h62" stroke={BRAND} strokeWidth={1.5} opacity={0.8} />
+      {/* the app: nav, sidebar, content */}
+      <path d="M40 34h148" {...STROKE} strokeWidth={4} opacity={0.35} />
+      <rect x="40" y="42" width="36" height="40" {...STROKE} opacity={0.6} />
+      <path d="M46 50h24M46 58h18M46 66h22" {...STROKE} strokeWidth={2} strokeDasharray="2 2" opacity={0.6} />
+      <rect x="84" y="42" width="104" height="18" {...STROKE} opacity={0.6} />
+      <path d="M90 51h58" {...STROKE} strokeWidth={3} strokeDasharray="3 3" opacity={0.55} />
+      <rect x="84" y="66" width="48" height="16" {...STROKE} opacity={0.6} />
+      <rect x="140" y="66" width="48" height="16" {...STROKE} opacity={0.6} />
+      {/* the public web: a globe the address bar reaches */}
+      <path d="M188 16h14" stroke={BRAND} strokeWidth={1.5} strokeDasharray="2 3" />
+      <circle cx="222" cy="20" r="13" fill="none" stroke={BRAND} strokeWidth={1.75} />
+      <ellipse cx="222" cy="20" rx="5.5" ry="13" fill="none" stroke={BRAND} strokeWidth={1.25} />
+      <path d="M209 20h26M212 13.5h20M212 26.5h20" stroke={BRAND} strokeWidth={1.25} />
     </svg>
   )
 }
 
+/** Code goes in, an isolated box runs it, a result comes back. */
 function SandboxArt() {
   return (
-    <svg viewBox="24 0 232 96" className={ART_BOX} aria-hidden>
-      {/* the isolation boundary */}
-      <rect x="44" y="4" width="192" height="88" {...ART_STROKE} strokeDasharray="4 4" opacity={0.5} />
-      {/* the terminal inside it */}
-      <rect x="64" y="18" width="152" height="60" fill={LAYER_FILL} stroke="currentColor" strokeWidth={1.5} />
-      <path d="M64 32h152" {...ART_STROKE} />
-      <circle cx="74" cy="25" r="2" fill="currentColor" />
-      <circle cx="82" cy="25" r="2" fill="currentColor" />
-      <circle cx="90" cy="25" r="2" fill="currentColor" />
-      <path d="M76 41l4 3-4 3" {...ART_STROKE} />
-      <path d="M88 44h62M88 54h82M88 64h52" {...ART_STROKE} strokeWidth={3} strokeDasharray="3 3" opacity={0.55} />
-      {/* the cursor: the only thing alive in there */}
+    <svg viewBox="0 0 256 96" className={ART_CLASS} aria-hidden>
+      {/* code, as a card of lines behind a prompt */}
       <rect
-        x="146"
-        y="60"
-        width="6"
-        height="8"
-        fill="hsl(var(--brand))"
-        style={{ animation: 'blink 1.1s steps(1) infinite' }}
+        x="20"
+        y="24"
+        width="60"
+        height="48"
+        fill="hsl(var(--background))"
+        stroke="currentColor"
+        strokeWidth={1.5}
       />
+      <path d="M27 36l4 3-4 3" {...STROKE} />
+      <path d="M36 39h30M27 50h34M27 60h22" {...STROKE} strokeWidth={2.5} strokeDasharray="3 3" opacity={0.6} />
+      {/* into the box */}
+      <path d="M84 48h14M94 44l4 4-4 4" {...STROKE} />
+      {/* the isolation boundary, and the box inside it */}
+      <rect x="104" y="10" width="72" height="76" {...STROKE} strokeDasharray="4 4" opacity={0.6} />
+      <path d="M140 22L162 33L140 44L118 33Z" fill="hsl(var(--brand) / 0.16)" stroke="currentColor" strokeWidth={1.5} />
+      <path d="M118 33L140 44L140 66L118 55Z" {...STROKE} />
+      <path d="M140 44L162 33L162 55L140 66Z" {...STROKE} />
+      {/* out again: the result, and nothing else */}
+      <path d="M180 48h14M190 44l4 4-4 4" {...STROKE} />
+      <rect
+        x="198"
+        y="30"
+        width="46"
+        height="36"
+        fill="hsl(var(--background))"
+        stroke="currentColor"
+        strokeWidth={1.5}
+      />
+      <path
+        d="M206 47l5 5 11-11"
+        fill="none"
+        stroke={BRAND}
+        strokeWidth={2.25}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M206 58h28" {...STROKE} strokeWidth={2} strokeDasharray="2 2" opacity={0.6} />
     </svg>
   )
 }
@@ -173,7 +208,7 @@ function ScenarioHeader({
     return (
       <div className="flex shrink-0 items-baseline gap-3 px-8 pt-7">
         <DialogHeader className="space-y-0 text-left">
-          <DialogTitle className="text-[15px] font-semibold text-foreground">{current.title}</DialogTitle>
+          <DialogTitle className="font-display text-em font-semibold text-foreground">{current.title}</DialogTitle>
           <DialogDescription className="sr-only">{current.sub}</DialogDescription>
         </DialogHeader>
         <button
@@ -189,12 +224,8 @@ function ScenarioHeader({
   return (
     <div className="shrink-0 px-8 pt-8">
       <DialogHeader className="space-y-0 text-left">
-        <DialogTitle className="text-[26px] font-semibold leading-[1.2] tracking-[-0.01em] text-foreground">
-          {current.title}
-        </DialogTitle>
-        <DialogDescription className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-          {current.sub}
-        </DialogDescription>
+        <DialogTitle className="font-display text-page font-semibold text-foreground">{current.title}</DialogTitle>
+        <DialogDescription className="mt-2 text-body text-muted-foreground">{current.sub}</DialogDescription>
       </DialogHeader>
 
       {/* Compatibility stated in one glance instead of a sentence: the agents
@@ -221,15 +252,15 @@ function ScenarioHeader({
                     drawing is the card's first line, not an icon beside its title. */}
                 <span
                   className={cn(
-                    'block border-b border-border/60 bg-[hsl(var(--brand)/0.04)] px-4 pb-0.5 pt-2',
+                    'flex h-[104px] items-center justify-center border-b border-border/60 bg-[hsl(var(--brand)/0.04)]',
                     sc.id === scenario ? 'text-foreground' : 'text-muted-foreground',
                   )}
                 >
                   <Art />
                 </span>
                 <span className="flex flex-col gap-1 px-5 pb-3.5 pt-3">
-                  <span className="text-[13px] font-semibold">{sc.tab}</span>
-                  <span className="text-[11.5px] font-normal text-muted-foreground">{sc.promise}</span>
+                  <span className="font-display text-em font-semibold">{sc.tab}</span>
+                  <span className="text-meta font-normal text-muted-foreground">{sc.promise}</span>
                 </span>
               </TabsTrigger>
             )

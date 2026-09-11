@@ -75,7 +75,7 @@ function TabsList({
             ? 'inline-flex items-center w-full bg-transparent border-b border-border rounded-none h-auto p-0 gap-0 justify-start shrink-0 text-muted-foreground'
             : variant === 'segmented'
               ? SEGMENTED_LIST
-              : 'inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground',
+              : 'inline-flex h-9 items-center justify-center bg-muted p-1 text-muted-foreground',
           className,
         )}
         {...props}
@@ -94,7 +94,7 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
           ? `${TRIGGER_BASE} rounded-none border-b-2 border-transparent px-4 py-2.5 text-sm data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none`
           : variant === 'segmented'
             ? SEGMENTED_TRIGGER
-            : `${TRIGGER_BASE} rounded-md px-3 text-sm data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow`,
+            : `${TRIGGER_BASE} px-3 text-sm data-[state=active]:bg-card data-[state=active]:text-foreground`,
         className,
       )}
       {...props}
