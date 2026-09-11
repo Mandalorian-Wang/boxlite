@@ -7,7 +7,7 @@ import { OrganizationPlan, Plan } from '@/billing-api'
 import { Metric, Panel, PanelNote, SectionTitle, SegmentedBar } from '@/components/ascii'
 import { queuedChange } from '@/components/billing/planChange'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useOwnerPlanQuery, useOwnerWalletQuery } from '@/hooks/queries/billingQueries'
+import { useOwnerPlanQuery } from '@/hooks/queries/billingQueries'
 import { usePlansQuery } from '@/hooks/queries/usePlansQuery'
 import { useRunningBoxCountQuery } from '@/hooks/queries/useRunningBoxCountQuery'
 import { planConcurrencyLimit } from '@/lib/plan-concurrency'
@@ -56,7 +56,6 @@ export function cycleFacts(plan: OrganizationPlan, now: Date, catalog: Plan[] = 
  */
 export function ThisCycleCard() {
   const { data: plan, isLoading } = useOwnerPlanQuery()
-  const { data: wallet } = useOwnerWalletQuery()
   const { data: plans } = usePlansQuery()
   const { selectedOrganization } = useSelectedOrganization()
 
@@ -93,9 +92,6 @@ export function ThisCycleCard() {
             value={formatAmount(plan.quotaRemainingCents ?? 0)}
             sub={unlimited ? 'unlimited quota' : `of ${formatAmount(plan.includedQuotaCents ?? 0)} included`}
           />
-          {wallet && (
-            <Metric label="Wallet balance" value={formatAmount(wallet.ongoingBalanceCents)} sub="drawn after quota" />
-          )}
           <Metric label="Cycle ends in" value={String(daysLeft)} sub={daysLeft === 1 ? 'day' : 'days'} />
         </div>
 

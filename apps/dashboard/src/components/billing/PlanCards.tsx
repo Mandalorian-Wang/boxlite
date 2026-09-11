@@ -29,35 +29,19 @@ function SpecRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-/** PR 829's cosmetic tier label and quota leverage, derived from catalog order and money. */
-export function planCardDisplay(plan: Plan, catalogIndex: number): { tierLabel: string; leverage: string } {
-  const leverage =
-    plan.priceMonthlyCents && plan.includedQuotaCents
-      ? `${(Math.floor((plan.includedQuotaCents / plan.priceMonthlyCents) * 100) / 100)
-          .toFixed(2)
-          .replace(/0+$/, '')
-          .replace(/\.$/, '')}×`
-      : '—'
-
-  return { tierLabel: `T${catalogIndex + 1}`, leverage }
-}
-
 function PlanCard({
   plan,
   organizationPlan,
   currentPriceCents,
-  catalogIndex,
   onSwitch,
 }: {
   plan: Plan
   organizationPlan?: OrganizationPlan | null
   currentPriceCents: number | null
-  catalogIndex: number
   onSwitch: (plan: Plan) => void
 }) {
   const cta = planCardCta({ plan, organizationPlan, currentPriceCents })
   const isActive = cta.kind === 'current'
-  const display = planCardDisplay(plan, catalogIndex)
 
   return (
     <div
@@ -67,7 +51,7 @@ function PlanCard({
     >
       <div className="mb-4 flex items-center justify-between">
         <span className="font-mono text-[10px] uppercase tracking-[1.5px] text-muted-foreground">
-          <span style={{ color: BRAND }}>▸</span> {display.tierLabel} · {plan.name}
+          <span style={{ color: BRAND }}>▸</span> {plan.name}
         </span>
         {isActive && (
           <span className="bg-foreground px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[1px] text-background">
@@ -94,7 +78,6 @@ function PlanCard({
           label="Quota"
           value={plan.includedQuotaCents != null ? formatWholeDollars(plan.includedQuotaCents) : 'Unlimited'}
         />
-        <SpecRow label="Leverage" value={display.leverage} />
         <SpecRow
           label="Concurrency"
           value={plan.concurrencyLimit != null ? `${plan.concurrencyLimit} boxes` : 'Unlimited'}
@@ -119,15 +102,17 @@ function PlanCard({
 }
 
 /**
- * The open-ended plan belongs beside the fixed catalogue, but its dashed
- * border makes clear that its limits and price are scoped rather than preset.
+ * The open-ended plan belongs beside the fixed catalogue, and reads like one:
+ * a plain border, with "by request" carrying the difference. A dashed border
+ * would have said something else — elsewhere in the console dashes mean an
+ * isolation boundary or a placeholder.
  */
-export function CustomPlanCard({ catalogIndex = 3 }: { catalogIndex?: number }) {
+export function CustomPlanCard() {
   return (
-    <div className="flex flex-col border border-dashed border-brand/50 bg-card px-[22px] py-5 transition-colors hover:border-brand">
+    <div className="flex flex-col border border-border bg-card px-[22px] py-5 transition-colors hover:border-brand">
       <div className="mb-4 flex items-center justify-between gap-3">
         <span className="font-mono text-[10px] uppercase tracking-[1.5px] text-muted-foreground">
-          <span style={{ color: BRAND }}>▸</span> T{catalogIndex + 1} · Custom
+          <span style={{ color: BRAND }}>▸</span> Custom
         </span>
         <span className="border border-brand/30 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[1px] text-brand">
           by request
@@ -143,7 +128,6 @@ export function CustomPlanCard({ catalogIndex = 3 }: { catalogIndex?: number }) 
 
       <div className="mb-5 flex-1 divide-y divide-border/40">
         <SpecRow label="Quota" value="—" />
-        <SpecRow label="Leverage" value="—" />
         <SpecRow label="Concurrency" value="—" />
       </div>
 
@@ -187,17 +171,16 @@ export function PlanCards({ plans, organizationPlan }: { plans: Plan[]; organiza
 
   return (
     <div className="grid grid-cols-1 gap-[14px] md:grid-cols-2 xl:grid-cols-4">
-      {plans.map((plan, catalogIndex) => (
+      {plans.map((plan) => (
         <PlanCard
           key={plan.id}
           plan={plan}
           organizationPlan={organizationPlan}
           currentPriceCents={currentPriceCents}
-          catalogIndex={catalogIndex}
           onSwitch={(target) => navigate(generatePath(RoutePath.BILLING_PLAN_CHANGE, { planId: target.id }))}
         />
       ))}
-      <CustomPlanCard catalogIndex={plans.length} />
+      <CustomPlanCard />
     </div>
   )
 }

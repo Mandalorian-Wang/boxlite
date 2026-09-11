@@ -61,7 +61,6 @@ export function CycleOverview({
   wallet,
   organizationPlan,
   catalogPlan,
-  catalogIndex,
   catalog = [],
   organizationId,
   plansAnchorId,
@@ -69,14 +68,12 @@ export function CycleOverview({
   wallet: OrganizationWallet
   organizationPlan?: OrganizationPlan | null
   catalogPlan?: Plan
-  catalogIndex?: number
   /** The whole catalog, so a queued plan can be named rather than shown as an id. */
   catalog?: Plan[]
   organizationId?: string
   plansAnchorId?: string
 }) {
   const mode = billingMode(wallet, organizationPlan)
-  const tierLabel = catalogIndex === undefined ? 'Plan' : `T${catalogIndex + 1}`
   const scheduled = scheduledChange({ plan: organizationPlan, catalog })
 
   return (
@@ -87,7 +84,7 @@ export function CycleOverview({
           <div className="flex items-center gap-3">
             {mode.kind === 'plan' && (
               <span className="font-mono text-[10px] uppercase tracking-[1.5px] text-muted-foreground">
-                <span style={{ color: BRAND }}>▸</span> {tierLabel}
+                <span style={{ color: BRAND }}>▸</span> Plan
               </span>
             )}
             <span className="font-mono text-[18px] font-semibold tracking-tight text-foreground">
@@ -110,7 +107,7 @@ export function CycleOverview({
         </div>
 
         {mode.kind === 'plan' ? (
-          <PlanFigures plan={mode.plan} wallet={wallet} catalogPlan={catalogPlan} />
+          <PlanFigures plan={mode.plan} wallet={wallet} />
         ) : mode.kind === 'free-trial' ? (
           <FreeTrialFigures mode={mode} wallet={wallet} />
         ) : (
@@ -183,24 +180,9 @@ function ScheduledChangeNote({
 
 const FIGURES = 'grid grid-cols-2 gap-5 border-t border-border px-[22px] py-5 sm:flex sm:flex-row sm:gap-14'
 
-function PlanFigures({
-  plan,
-  wallet,
-  catalogPlan,
-}: {
-  plan: OrganizationPlan
-  wallet: OrganizationWallet
-  catalogPlan?: Plan
-}) {
+function PlanFigures({ plan, wallet }: { plan: OrganizationPlan; wallet: OrganizationWallet }) {
   return (
     <div className={FIGURES}>
-      <Metric
-        label="Subscription"
-        value={plan.planName}
-        sub={
-          catalogPlan?.priceMonthlyCents != null ? `${formatWholeDollars(catalogPlan.priceMonthlyCents)}/mo` : undefined
-        }
-      />
       <Metric label="Wallet balance" value={formatAmount(wallet.ongoingBalanceCents)} />
       <Metric
         label="Quota consumed"

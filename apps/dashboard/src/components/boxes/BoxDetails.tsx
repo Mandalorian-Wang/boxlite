@@ -80,7 +80,7 @@ function statusOf(box: Box): { label: string; color: string } {
 function SectionHeader({ title, right }: { title: string; right?: ReactNode }) {
   return (
     <div className="mb-[10px] mt-[34px] flex items-center gap-[9px] first:mt-0">
-      <span className="size-[6px] flex-none bg-brand" />
+      <span className="text-label leading-none text-brand">▸</span>
       <span className="text-[11px] uppercase tracking-[2px]">{title}</span>
       <span className="flex-1 border-t border-dashed border-border" />
       {right}
@@ -300,7 +300,7 @@ export default function BoxDetails() {
           boxes
         </button>
         <span className="text-border">/</span>
-        <span className="text-foreground">{box ? getBoxPublicIdLabel(box).toLowerCase() : boxId?.toLowerCase()}</span>
+        <span className="text-foreground">{box ? getBoxDisplayName(box) : boxId?.toLowerCase()}</span>
       </div>
 
       {isNotFound ? (
@@ -365,11 +365,6 @@ export default function BoxDetails() {
                 />
                 <span className="font-medium">{statusOf(box).label}</span>
               </span>
-              {box.image && (
-                <span className="max-w-full truncate border border-border px-[9px] py-[3px] text-[11px] tracking-[0.5px] text-muted-foreground sm:flex-none">
-                  {box.image}
-                </span>
-              )}
             </div>
 
             <div className="flex flex-none flex-wrap items-center gap-2 sm:gap-[10px]">
@@ -525,7 +520,7 @@ export default function BoxDetails() {
             <div className="flex h-[60vh] flex-none flex-col border border-border bg-[hsl(var(--code-background))] lg:h-auto lg:min-h-0 lg:flex-1">
               <div className="flex flex-none items-center justify-between border-b border-dashed border-border px-5 py-[15px]">
                 <span className="flex items-center gap-[9px] text-[11px] uppercase tracking-[2px]">
-                  <span className="size-[6px] flex-none bg-brand" />
+                  <span className="text-brand">▸</span>
                   shell
                   <span className="ml-0.5 tracking-[0.5px] text-muted-foreground normal-case">
                     {getBoxPublicIdLabel(box)}
