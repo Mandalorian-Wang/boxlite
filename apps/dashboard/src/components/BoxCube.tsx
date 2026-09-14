@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils'
  * Vertices (64×64): top face A(32,10) B(54,22) C(32,34) D(10,22); the two
  * visible side faces hang from D–C–B down to D'(10,44) C'(32,56) B'(54,44).
  */
-export type CubeState = 'empty' | 'disposable' | 'persistent' | 'public' | 'error' | 'stopped'
+export type CubeState = 'empty' | 'building' | 'disposable' | 'persistent' | 'public' | 'error' | 'stopped'
 
 const TOP = 'M32 10L54 22L32 34L10 22Z'
 const LEFT = 'M10 22L32 34L32 56L10 44Z'
@@ -47,7 +47,30 @@ export function BoxCube({
       aria-label={title}
       aria-hidden={title ? undefined : true}
     >
-      {state === 'empty' ? (
+      {state === 'building' ? (
+        // A box assembling itself: each face's outline draws in, then the top
+        // lights once the three have met. The console's own loading state is
+        // the thing the console is about, rather than a generic spinner.
+        <>
+          {[TOP, LEFT, RIGHT].map((face, i) => (
+            <path
+              key={i}
+              d={face}
+              {...stroke}
+              strokeDasharray={140}
+              style={{ animation: `box-draw 2.4s ease-in-out ${(i * 0.22).toFixed(2)}s infinite` }}
+              className="motion-reduce:animate-none"
+            />
+          ))}
+          <path
+            d={TOP}
+            fill={brand}
+            fillOpacity={0}
+            style={{ animation: 'box-lit 2.4s ease-in-out 0.66s infinite' }}
+            className="motion-reduce:hidden"
+          />
+        </>
+      ) : state === 'empty' ? (
         <>
           <path d={TOP} {...stroke} strokeDasharray="3 3" />
           <path d={LEFT} {...stroke} strokeDasharray="3 3" />

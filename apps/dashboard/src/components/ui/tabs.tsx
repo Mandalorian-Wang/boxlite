@@ -28,31 +28,35 @@ const TRIGGER_BASE =
   'inline-flex items-center justify-center whitespace-nowrap py-1 font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
 
 /*
- * `segmented` — square, right-divided segments.
+ * `segmented` — square segments sharing collapsed edges.
  *
- * Selection is drawn with `--brand`, not `--accent`. `--accent` is what this
- * repo has used for a selected fill (`Sidebar`, `ui/toggle`, `ui/calendar`),
- * but it sits ~4 lightness points off the surface it renders on — measured
- * 1.18:1 light, 1.21:1 dark — which is why "which one is selected?" is hard to
- * answer on these strips, and it is also the hover tint, so the two states
- * conflate. A brand tint at a similar 1.12:1 is no more visible on its own, so
- * the selected segment carries an inset brand rule too (2.49:1 light, 7.30:1
- * dark, alongside the weight change); that is the pairing `AsciiChip` and
- * `InterfacePicker` use, so a chosen option now looks the same across all
- * three. The label stays `foreground`: `--brand` as text measures ~2.2:1 on
- * the light theme's white surface, well under AA.
+ * The chosen segment is the one lifted *out* of the strip: the strip's resting
+ * surface is `--card`, and the active segment alone is `--background`, the
+ * surface of the panel it opens. Weight and value do the rest — the active
+ * label is the only one at `foreground` and `font-semibold`.
+ *
+ * Not `--accent`, which this repo has used for a selected fill (`Sidebar`,
+ * `ui/toggle`, `ui/calendar`): it sits ~4 lightness points off the surface it
+ * renders on — measured 1.18:1 light, 1.21:1 dark — which is why "which one is
+ * selected?" was hard to answer on these strips, and it is also the hover tint,
+ * so the two states conflated. Not `--brand` either: brand marks what is live
+ * (a running box, a rising cost), and spending it on a click leaves nothing to
+ * say "this one is actually doing something".
  */
-const SEGMENTED_LIST =
-  'inline-flex h-9 w-fit items-center justify-start gap-0 rounded-none border border-border bg-transparent p-0'
+const SEGMENTED_LIST = 'inline-flex h-9 w-fit items-center justify-start gap-0 rounded-none bg-card p-0'
 
 const SEGMENTED_TRIGGER = [
   TRIGGER_BASE,
-  'h-full gap-1.5 rounded-none border-0 border-r border-border px-5 text-xs last:border-r-0',
-  'text-muted-foreground hover:bg-accent hover:text-foreground',
-  // `shadow-[inset...]` rather than a border: the segments are divided by
-  // `border-r`, so recolouring one edge is not a selection marker, and giving
-  // the active segment a real border would shift the strip by a pixel.
-  'data-[state=active]:bg-[hsl(var(--brand)/0.12)] data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-[inset_0_0_0_1px_hsl(var(--brand))]',
+  // Every segment carries all four edges and pulls left by a pixel so the
+  // shared ones collapse into single rules. That is what lets the active
+  // segment brighten its *whole* outline; with a `border-r` divider it could
+  // only ever recolour one side, which does not read as an enclosure.
+  '-ml-px h-full gap-1.5 rounded-none border border-border px-5 text-xs first:ml-0',
+  'text-muted-foreground hover:text-foreground',
+  // `relative z-10` so the brightened outline wins the collapse against its
+  // neighbours instead of being half-covered by them.
+  'data-[state=active]:relative data-[state=active]:z-10 data-[state=active]:border-foreground/45',
+  'data-[state=active]:bg-background data-[state=active]:font-semibold data-[state=active]:text-foreground',
 ].join(' ')
 
 const TabsVariantContext = React.createContext<TabsVariant>('default')

@@ -26,7 +26,9 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 const chartConfig = {
   quota: { label: 'Quota-covered', color: 'hsl(var(--brand))' },
-  wallet: { label: 'From wallet', color: 'hsl(var(--warning))' },
+  // Drawing on the wallet is ordinary paid usage, not a caution: the warning
+  // hue is what a volume being reclaimed or a plan alert uses.
+  wallet: { label: 'From wallet', color: 'hsl(var(--chart-4))' },
 } satisfies ChartConfig
 
 type Point = { time: string; quota: number; wallet: number; total: number }
@@ -80,14 +82,14 @@ export function CostOverTime() {
         title="Cost Over Time"
         count={total > 0 ? formatMoney(total) : undefined}
         right={
-          <div className="flex items-center border border-border">
+          <div className="flex items-center bg-card">
             {(['chart', 'list'] as const).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setView(mode)}
-                className={`px-3 py-1.5 font-mono text-[11px] uppercase tracking-[1px] transition-colors ${
+                className={`-ml-px border border-border px-3 py-1.5 font-mono text-[11px] uppercase tracking-[1px] transition-colors first:ml-0 ${
                   view === mode
-                    ? 'bg-[hsl(var(--brand)/0.12)] font-semibold text-foreground shadow-[inset_0_0_0_1px_hsl(var(--brand))]'
+                    ? 'relative z-10 border-foreground/45 bg-background font-semibold text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >

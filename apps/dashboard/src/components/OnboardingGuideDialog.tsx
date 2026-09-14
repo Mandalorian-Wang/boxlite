@@ -85,97 +85,80 @@ const SCENARIOS = [
 
 type ScenarioId = (typeof SCENARIOS)[number]['id']
 
-// Each card shows the outcome of its job, not the box that produces it. The
-// left one is an app in a browser, reachable on the public web; the right
-// one is code going into an isolated box and a result coming back out.
-// Same register as the rest of the console: one stroke, `currentColor`,
-// brand spent on the one thing that is the point.
+// One subject per card, with mass. The first pass drew the whole story —
+// window chrome, page layout, a globe, a three-step pipeline — at one stroke
+// weight, so twenty equal lines competed and nothing led. These keep a single
+// filled object as the figure, one recessive frame as the ground, and spend
+// brand exactly once, on the detail that names the job.
 const ART_CLASS = 'h-[92px] w-full'
-const STROKE = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.5 } as const
+const SURFACE = 'hsl(var(--background))'
 const BRAND = 'hsl(var(--brand))'
 
-/** A browser window with the app laid out inside it, and the globe it is reachable from. */
+/** A browser window, and the one lit thing on it: its address. */
 function PublishArt() {
   return (
     <svg viewBox="0 0 256 96" className={ART_CLASS} aria-hidden>
-      {/* window */}
-      <rect
-        x="32"
-        y="8"
-        width="164"
-        height="82"
-        fill="hsl(var(--background))"
-        stroke="currentColor"
-        strokeWidth={1.5}
-      />
-      <path d="M32 24h164" {...STROKE} />
-      <circle cx="41" cy="16" r="1.8" fill="currentColor" />
-      <circle cx="48" cy="16" r="1.8" fill="currentColor" />
-      <circle cx="55" cy="16" r="1.8" fill="currentColor" />
-      {/* address bar, with the address in brand */}
-      <rect x="64" y="11.5" width="124" height="9" {...STROKE} strokeWidth={1} opacity={0.6} />
-      <path d="M69 16h4" stroke={BRAND} strokeWidth={2} />
-      <path d="M77 16h62" stroke={BRAND} strokeWidth={1.5} opacity={0.8} />
-      {/* the app: nav, sidebar, content */}
-      <path d="M40 34h148" {...STROKE} strokeWidth={4} opacity={0.35} />
-      <rect x="40" y="42" width="36" height="40" {...STROKE} opacity={0.6} />
-      <path d="M46 50h24M46 58h18M46 66h22" {...STROKE} strokeWidth={2} strokeDasharray="2 2" opacity={0.6} />
-      <rect x="84" y="42" width="104" height="18" {...STROKE} opacity={0.6} />
-      <path d="M90 51h58" {...STROKE} strokeWidth={3} strokeDasharray="3 3" opacity={0.55} />
-      <rect x="84" y="66" width="48" height="16" {...STROKE} opacity={0.6} />
-      <rect x="140" y="66" width="48" height="16" {...STROKE} opacity={0.6} />
-      {/* the public web: a globe the address bar reaches */}
-      <path d="M188 16h14" stroke={BRAND} strokeWidth={1.5} strokeDasharray="2 3" />
-      <circle cx="222" cy="20" r="13" fill="none" stroke={BRAND} strokeWidth={1.75} />
-      <ellipse cx="222" cy="20" rx="5.5" ry="13" fill="none" stroke={BRAND} strokeWidth={1.25} />
-      <path d="M209 20h26M212 13.5h20M212 26.5h20" stroke={BRAND} strokeWidth={1.25} />
+      <rect x="54" y="10" width="148" height="76" fill={SURFACE} stroke="currentColor" strokeWidth={1.75} />
+      <path d="M54 32h148" stroke="currentColor" strokeWidth={1.25} opacity={0.7} />
+      <circle cx="64" cy="21" r="1.75" fill="currentColor" opacity={0.45} />
+      <circle cx="72" cy="21" r="1.75" fill="currentColor" opacity={0.45} />
+      <circle cx="80" cy="21" r="1.75" fill="currentColor" opacity={0.45} />
+      {/* the address: the only element that is lit, because a public URL is
+          the whole point of this job */}
+      <rect x="92" y="15.5" width="98" height="11" fill="hsl(var(--brand) / 0.16)" />
+      <path d="M98 21h62" stroke={BRAND} strokeWidth={2.25} strokeLinecap="round" />
+      {/* the page, as weight rather than drawing */}
+      <rect x="68" y="44" width="120" height="7" fill="currentColor" opacity={0.16} />
+      <rect x="68" y="58" width="84" height="7" fill="currentColor" opacity={0.16} />
+      <rect x="68" y="72" width="52" height="7" fill="currentColor" opacity={0.16} />
     </svg>
   )
 }
 
-/** Code goes in, an isolated box runs it, a result comes back. */
+/** A solid box standing inside a boundary, with code running in it. */
 function SandboxArt() {
   return (
     <svg viewBox="0 0 256 96" className={ART_CLASS} aria-hidden>
-      {/* code, as a card of lines behind a prompt */}
+      {/* the boundary recedes: it is the condition, not the subject */}
       <rect
-        x="20"
-        y="24"
-        width="60"
-        height="48"
-        fill="hsl(var(--background))"
+        x="70"
+        y="8"
+        width="116"
+        height="80"
+        fill="none"
         stroke="currentColor"
-        strokeWidth={1.5}
+        strokeWidth={1.25}
+        strokeDasharray="4 4"
+        opacity={0.4}
       />
-      <path d="M27 36l4 3-4 3" {...STROKE} />
-      <path d="M36 39h30M27 50h34M27 60h22" {...STROKE} strokeWidth={2.5} strokeDasharray="3 3" opacity={0.6} />
-      {/* into the box */}
-      <path d="M84 48h14M94 44l4 4-4 4" {...STROKE} />
-      {/* the isolation boundary, and the box inside it */}
-      <rect x="104" y="10" width="72" height="76" {...STROKE} strokeDasharray="4 4" opacity={0.6} />
-      <path d="M140 22L162 33L140 44L118 33Z" fill="hsl(var(--brand) / 0.16)" stroke="currentColor" strokeWidth={1.5} />
-      <path d="M118 33L140 44L140 66L118 55Z" {...STROKE} />
-      <path d="M140 44L162 33L162 55L140 66Z" {...STROKE} />
-      {/* out again: the result, and nothing else */}
-      <path d="M180 48h14M190 44l4 4-4 4" {...STROKE} />
-      <rect
-        x="198"
-        y="30"
-        width="46"
-        height="36"
-        fill="hsl(var(--background))"
-        stroke="currentColor"
-        strokeWidth={1.5}
-      />
+      {/* the box, with volume — it occludes the boundary behind it */}
+      {/* Volume comes from three neutral values, not from hue: brand marks what
+          is live, and a face of a box is material, not state. */}
       <path
-        d="M206 47l5 5 11-11"
+        d="M128 18L162 35L128 52L94 35Z"
+        fill="currentColor"
+        fillOpacity={0.14}
+        stroke="currentColor"
+        strokeWidth={1.75}
+      />
+      <path d="M94 35L128 52L128 80L94 63Z" fill={SURFACE} stroke="currentColor" strokeWidth={1.75} />
+      <path
+        d="M128 52L162 35L162 63L128 80Z"
+        fill="currentColor"
+        fillOpacity={0.07}
+        stroke="currentColor"
+        strokeWidth={1.75}
+      />
+      {/* code, running inside it */}
+      <path
+        d="M103 60l5 4-5 4"
         fill="none"
         stroke={BRAND}
         strokeWidth={2.25}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path d="M206 58h28" {...STROKE} strokeWidth={2} strokeDasharray="2 2" opacity={0.6} />
+      <path d="M112 68h9" stroke={BRAND} strokeWidth={2.25} strokeLinecap="round" opacity={0.75} />
     </svg>
   )
 }
@@ -239,20 +222,33 @@ function ScenarioHeader({
       </div>
 
       <Tabs value={scenario} onValueChange={(v) => onSelect(v as ScenarioId)} className="mt-6">
-        <TabsList variant="segmented" className="grid h-auto w-full grid-cols-2 gap-4 border-0">
+        {/* The segmented variant's strip is a container the active segment shows
+            through; these are free-standing cards with a gutter between them,
+            so the strip itself carries neither ground nor border. */}
+        <TabsList variant="segmented" className="grid h-auto w-full grid-cols-2 gap-4 border-0 bg-transparent">
           {SCENARIOS.map((sc) => {
             const Art = SCENARIO_ART[sc.id]
             return (
               <TabsTrigger
                 key={sc.id}
                 value={sc.id}
-                className="h-auto flex-col items-stretch gap-0 overflow-hidden border border-border p-0 text-left last:border-r hover:border-brand/60 hover:bg-transparent data-[state=active]:border-brand data-[state=active]:bg-transparent"
+                className={cn(
+                  'h-auto flex-col items-stretch gap-0 overflow-hidden border border-border p-0 text-left hover:bg-transparent',
+                  // One rule across the console: the chosen thing is the
+                  // surface that differs from its container, and the ones not
+                  // chosen recede into it. Here the container is the dialog,
+                  // so the chosen card lifts onto `card` and the others sit
+                  // flat on the dialog's own ground.
+                  sc.id === scenario
+                    ? 'border-foreground/45 bg-card opacity-100'
+                    : 'bg-transparent text-muted-foreground',
+                )}
               >
                 {/* Thumbnail on a dotted field, flush to the card's edges — the
                     drawing is the card's first line, not an icon beside its title. */}
                 <span
                   className={cn(
-                    'flex h-[104px] items-center justify-center border-b border-border/60 bg-[hsl(var(--brand)/0.04)]',
+                    'flex h-[104px] items-center justify-center border-b border-border/60',
                     sc.id === scenario ? 'text-foreground' : 'text-muted-foreground',
                   )}
                 >
@@ -339,8 +335,8 @@ function InterfacePicker({
                     className={cn(
                       'flex min-h-[34px] items-center justify-center gap-2 border px-[12px] py-[7px] text-[12px] transition-colors',
                       on
-                        ? 'border-brand bg-[hsl(var(--brand)/0.12)] font-semibold text-foreground'
-                        : 'border-border text-muted-foreground hover:border-brand/70 hover:text-foreground',
+                        ? 'border-foreground/45 bg-card font-semibold text-foreground'
+                        : 'border-border text-muted-foreground hover:text-foreground',
                     )}
                   >
                     <QuickstartInterfaceIcon item={item} />

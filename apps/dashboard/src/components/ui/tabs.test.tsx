@@ -44,16 +44,23 @@ function renderVariant(variant: 'default' | 'underline' | 'segmented') {
 const renderSegmented = () => renderVariant('segmented')
 
 describe('segmented tabs', () => {
-  it('marks the selected tab with brand, not the neutral hover tint', () => {
-    // `--accent` is the hover tint and sits ~4 lightness points off the surface
-    // it renders on, so it cannot carry selection. A brand tint can.
-    const { active } = renderSegmented()
+  it('marks the selected tab by attention, not by decoration', () => {
+    // A brand hairline measured 2.49:1 on the light theme — the weakest mark
+    // in the frame carrying the most important meaning. Selection is now the
+    // segment at full value against dimmed siblings; brand is reserved for
+    // things that are live.
+    const { active, inactive } = renderSegmented()
 
-    expect(active.className).toContain('data-[state=active]:bg-[hsl(var(--brand)/0.12)]')
-    expect(active.className).not.toContain('data-[state=active]:bg-accent')
-    // A 0.12 tint alone measures 1.12:1 — about what `bg-accent` managed — so
-    // the inset rule is what actually makes the selected segment findable.
-    expect(active.className).toContain('data-[state=active]:shadow-[inset_0_0_0_1px_hsl(var(--brand))]')
+    expect(inactive.className).toContain('text-muted-foreground')
+    // `disabled:opacity-50` is in the shared base, so only the state-carrying
+    // opacities matter here: selection must not be a transparency, which reads
+    // as "quieter" on the dark theme and as "disabled" on the light one.
+    expect(inactive.className).not.toContain('opacity-55')
+    expect(active.className).not.toContain(':opacity-100')
+    expect(active.className).toContain('data-[state=active]:bg-background')
+    expect(active.className).toContain('data-[state=active]:border-foreground/45')
+    expect(active.className).not.toContain('bg-[hsl(var(--brand)')
+    expect(active.className).not.toContain('hsl(var(--brand))]')
   })
 
   it('keeps the selected label readable on the light theme', () => {
@@ -69,7 +76,7 @@ describe('segmented tabs', () => {
   it('leaves the neutral tint to hover', () => {
     const { inactive } = renderSegmented()
 
-    expect(inactive.className).toContain('hover:bg-accent')
+    expect(inactive.className).toContain('hover:text-foreground')
   })
 })
 
