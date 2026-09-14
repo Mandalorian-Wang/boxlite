@@ -9,7 +9,7 @@ import { Box, BoxState } from '@boxlite-ai/api-client'
 /**
  * One noun, three shapes. The API has no `shape` field; the shape is what the
  * box's flags add up to, and it is what decides which surface a screen leads
- * with — a public box is its URL, a sandbox is its shell.
+ * with — a public box is its URL, a disposable one is its shell.
  */
 export type BoxShape = 'public' | 'persistent' | 'disposable'
 

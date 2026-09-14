@@ -77,7 +77,7 @@ const SCENARIOS = [
   {
     id: 'untrusted-code',
     tab: 'Run untrusted code',
-    promise: 'A sandbox for your code',
+    promise: 'An isolated box for your code',
     title: 'Run untrusted code in a box.',
     sub: 'A key, an SDK, and a box that runs whatever you give it.',
   },
@@ -116,7 +116,7 @@ function PublishArt() {
 }
 
 /** A solid box standing inside a boundary, with code running in it. */
-function SandboxArt() {
+function UntrustedCodeArt() {
   return (
     <svg viewBox="0 0 256 96" className={ART_CLASS} aria-hidden>
       {/* the boundary recedes: it is the condition, not the subject */}
@@ -165,7 +165,7 @@ function SandboxArt() {
 
 const SCENARIO_ART: Record<ScenarioId, () => ReactElement> = {
   publish: PublishArt,
-  'untrusted-code': SandboxArt,
+  'untrusted-code': UntrustedCodeArt,
 }
 
 /**
