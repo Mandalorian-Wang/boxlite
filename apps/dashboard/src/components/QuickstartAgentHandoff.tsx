@@ -8,6 +8,17 @@ import { QuickstartCopyButton } from '@/components/QuickstartCopyButton'
 import { useApi } from '@/hooks/useApi'
 import { useSelectedOrganization } from '@/hooks/useSelectedOrganization'
 import { createApiKeyWithFallbackName } from '@/lib/quickstart-api-key'
+import { copyToClipboard } from '@/lib/copy-text'
+import {
+  HANDOFF_LIFETIME_DAYS,
+  HANDOFF_LIFETIME_MS,
+  handoffIdentity,
+  handoffStore,
+  shouldIssueKey,
+  shouldRestoreCompletion,
+  type Handoff,
+  type HandoffBox,
+} from '@/lib/quickstart-handoff'
 import { cn } from '@/lib/utils'
 import { RoutePath } from '@/enums/RoutePath'
 import { ArrowUpRight } from '@/components/ui/icon'
@@ -24,10 +35,6 @@ import { Link, generatePath } from 'react-router-dom'
 
 const AGENT_GUIDE_URL = 'https://boxlite.ai/agent.md'
 
-// The key travels through a third-party coding agent's transcript, so it is
-// scoped and short-lived by construction rather than by warning the user.
-const KEY_LIFETIME_DAYS = 7
-
 const POLL_INTERVAL_MS = 5000
 // How long to wait for org members before treating the load as failed.
 const PERMISSION_WAIT_MS = 10_000
@@ -38,24 +45,6 @@ const POLL_PAGE_SIZE = 20
 // it should read like someone talking, not like a runbook.
 const ASK = `Read ${AGENT_GUIDE_URL}, then build me a CRM system and put it online on BoxLite so I get a public URL I can share.`
 
-/**
- * The plaintext key is returned exactly once, so without somewhere to keep it
- * the flow is a trap: copy, switch to the terminal, reopen, and the key is
- * unrecoverable while a dead one is left behind in the account.
- *
- * `sessionStorage`, not `localStorage`: it covers every case the trap needs
- * covering for — reopening the dialog, reloading the page — and then dies with
- * the tab, so a bearer credential is never left at rest for the next person on
- * a shared machine. It is scoped per user and per organization on top of that,
- * because rehydrating one org's key inside another would hand the user a
- * credential for the wrong account. Not in `LocalStorageKey`: different store.
- */
-const HANDOFF_KEY_PREFIX = 'QuickstartAgentHandoff_'
-
-function handoffKey(userId: string, orgId: string) {
-  return `${HANDOFF_KEY_PREFIX}${userId}_${orgId}`
-}
-
 // Everything after the last underscore is secret. Splitting there rather than
 // at a fixed offset keeps the mask correct for any prefix length — deployments
 // configure their own, so a hard-coded slice would print key body characters
@@ -63,78 +52,6 @@ function handoffKey(userId: string, orgId: string) {
 export function maskKey(key: string) {
   const cut = key.lastIndexOf('_')
   return `${cut > 0 ? key.slice(0, cut + 1) : ''}${'•'.repeat(18)}`
-}
-
-type HandoffBox = {
-  id: string
-  name?: string
-  public?: boolean
-}
-
-type Handoff = {
-  keyValue: string
-  keyName: string
-  baselineIds: string[]
-  issuedAt: number
-  /** Recorded once the box is online, so re-entering shows the result instead
-   *  of restarting the wait — and does not mint a replacement key. */
-  completed?: { id: string; name?: string }
-}
-
-function readHandoff(storageKey: string): Handoff | null {
-  let raw: string | null = null
-  try {
-    raw = globalThis.sessionStorage?.getItem(storageKey) ?? null
-  } catch {
-    return null
-  }
-  if (!raw) return null
-  try {
-    const parsed = JSON.parse(raw) as Handoff
-    // Every field is checked: a hand-edited or truncated blob must not produce
-    // NaN arithmetic that silently reads as "not expired".
-    if (typeof parsed?.keyValue !== 'string' || !parsed.keyValue) return null
-    if (!Number.isFinite(parsed.issuedAt)) return null
-    if (!Array.isArray(parsed.baselineIds)) return null
-    if (Date.now() - parsed.issuedAt > KEY_LIFETIME_DAYS * 24 * 60 * 60 * 1000) return null
-    return parsed
-  } catch {
-    return null
-  }
-}
-
-function writeHandoff(storageKey: string, handoff: Handoff | null) {
-  try {
-    if (handoff) globalThis.sessionStorage?.setItem(storageKey, JSON.stringify(handoff))
-    else globalThis.sessionStorage?.removeItem(storageKey)
-  } catch {
-    /* storage may be unavailable or full; the in-memory copy still works */
-  }
-}
-
-/**
- * Whether a key may be minted right now. Pulled out as a pure function because
- * the bug it encodes — issuing while the component still holds the *previous*
- * identity's handoff — mints a live credential, and that is not something to
- * leave provable only by clicking through the UI.
- */
-export function shouldIssueKey(state: {
-  /** `handoff` has been re-read for the identity currently on screen. */
-  hydrated: boolean
-  hasHandoff: boolean
-  failed: boolean
-  hasOrg: boolean
-  storageKey: string | null
-  permissionCount: number
-  alreadyIssuingForKey: boolean
-}) {
-  if (!state.storageKey || !state.hasOrg) return false
-  // The gate that matters: a stale `null` handoff from the previous identity
-  // reads exactly like "nothing stored for this one".
-  if (!state.hydrated) return false
-  if (state.hasHandoff || state.failed) return false
-  if (state.permissionCount === 0) return false
-  return !state.alreadyIssuingForKey
 }
 
 /**
@@ -152,16 +69,21 @@ export function findAgentBox(boxes: HandoffBox[] | undefined, baselineIds: Reado
 export function QuickstartAgentHandoff({
   restApiUrl,
   onProgressChange,
+  onLeave,
 }: {
   restApiUrl: string
   onProgressChange: (progress: OnboardingProgress) => void
+  /** Following a link out of the dialog has to close it: the host lives in the
+   *  persistent dashboard shell, so its `open` survives the navigation and the
+   *  dialog would sit on top of the page it sent the user to. */
+  onLeave?: () => void
 }) {
   const { apiKeyApi, boxApi } = useApi()
   const { selectedOrganization, organizationMembers, refreshOrganizationMembers, authenticatedUserHasPermission } =
     useSelectedOrganization()
   const userId = useAuth().user?.profile.sub
   const orgId = selectedOrganization?.id
-  const storageKey = userId && orgId ? handoffKey(userId, orgId) : null
+  const identity = userId && orgId ? handoffIdentity(userId, orgId) : null
 
   // Members load in the background, and the permission check reads false until
   // they land. Without this an owner is told they lack permission for the first
@@ -187,16 +109,18 @@ export function QuickstartAgentHandoff({
   // change the value is still the previous identity's while the ref already
   // says otherwise — which is exactly how a second key gets minted.
   const [handoffState, setHandoffState] = useState<{ identity: string | null; value: Handoff | null }>(() => ({
-    identity: storageKey,
-    value: storageKey ? readHandoff(storageKey) : null,
+    identity: identity,
+    value: identity ? handoffStore.get(identity) : null,
   }))
-  const hydrated = handoffState.identity === storageKey
+  const hydrated = handoffState.identity === identity
   const handoff = hydrated ? handoffState.value : null
   // Read by effects that must not re-run on every write.
   const handoffRef = useRef(handoff)
   handoffRef.current = handoff
   const [failed, setFailed] = useState(false)
-  const [copied, setCopied] = useState(false)
+  // A copy that did not happen has to say so: silence reads as an unclicked
+  // button, and the prompt is the one thing this screen exists to hand over.
+  const [copied, setCopied] = useState<'done' | 'failed' | null>(null)
   const [reached, setReached] = useState(false)
   // The box is frozen at the moment it finishes. It joins the baseline right
   // after, which is what stops a later poll re-claiming it — so the poll can
@@ -204,26 +128,26 @@ export function QuickstartAgentHandoff({
   const [finishedBox, setFinishedBox] = useState<HandoffBox | null>(null)
   // Restore a completion recorded before this mount (the SDK walkthrough
   // unmounts this component, so returning must not restart the wait).
-  const restoredOnce = useRef(false)
+  const restoredFor = useRef<string | null>(null)
   useEffect(() => {
-    if (restoredOnce.current || !hydrated) return
-    restoredOnce.current = true
+    if (!shouldRestoreCompletion({ hydrated, restoredFor: restoredFor.current, identity })) return
+    restoredFor.current = identity
     const done = handoff?.completed ?? null
     if (done) {
       setFinishedBox(done)
       setReached(true)
     }
-  }, [hydrated, handoff])
+  }, [hydrated, handoff, identity])
   // A set, not one ref: switching org A -> B -> A while A's request is still
   // open would let a single slot be overwritten and then re-enter, minting a
   // second key for A. Membership is per identity and only cleared on failure.
   const issuingFor = useRef(new Set<string>())
   // The identity currently on screen, readable from an async callback whose
   // closure captured an older one.
-  const onScreenIdentity = useRef(storageKey)
+  const onScreenIdentity = useRef(identity)
   useEffect(() => {
-    onScreenIdentity.current = storageKey
-  }, [storageKey])
+    onScreenIdentity.current = identity
+  }, [identity])
 
   // Rehydrate when the identity actually changes. Deliberately does not touch
   // `issuingFor`: an in-flight request belongs to the identity that started it.
@@ -232,8 +156,8 @@ export function QuickstartAgentHandoff({
     setReached(false)
     setFinishedBox(null)
     setFailed(false)
-    setHandoffState({ identity: storageKey, value: storageKey ? readHandoff(storageKey) : null })
-  }, [hydrated, storageKey])
+    setHandoffState({ identity: identity, value: identity ? handoffStore.get(identity) : null })
+  }, [hydrated, identity])
 
   const permissions = useMemo(() => {
     if (!canCreateApiKey) return []
@@ -248,26 +172,26 @@ export function QuickstartAgentHandoff({
   // before the user has finished reading the heading.
   useEffect(() => {
     if (
-      !storageKey ||
+      !identity ||
       !shouldIssueKey({
         hydrated,
         hasHandoff: Boolean(handoff),
         failed,
         hasOrg: Boolean(orgId),
-        storageKey,
+        identity,
         permissionCount: permissions.length,
-        alreadyIssuingForKey: issuingFor.current.has(storageKey),
+        alreadyIssuingForKey: issuingFor.current.has(identity),
       })
     ) {
       return
     }
-    const startedFor = storageKey
+    const startedFor = identity
     issuingFor.current.add(startedFor)
     void (async () => {
       try {
         // Baseline first: a key that does not exist yet cannot have made a box.
         const existing = (await boxApi.listBoxesPaginated(orgId, 1, POLL_PAGE_SIZE)).data.items as HandoffBox[]
-        const expiresAt = new Date(Date.now() + KEY_LIFETIME_DAYS * 24 * 60 * 60 * 1000)
+        const expiresAt = new Date(Date.now() + HANDOFF_LIFETIME_MS)
         const key = (
           await createApiKeyWithFallbackName<{ data: ApiKeyResponse }>(
             (name) => apiKeyApi.createApiKey({ name, permissions, expiresAt }, orgId),
@@ -280,9 +204,9 @@ export function QuickstartAgentHandoff({
           baselineIds: existing.map((box) => box.id),
           issuedAt: Date.now(),
         }
-        // Always stored against the identity that asked for it, so switching
-        // away and back rehydrates this key instead of minting another.
-        writeHandoff(startedFor, next)
+        // Always kept against the identity that asked for it, so switching
+        // away and back reuses this key instead of minting another.
+        handoffStore.set(startedFor, next)
         // Only rendered if that identity is still the one on screen — showing
         // one account a credential minted for another is the failure this
         // guards against.
@@ -292,10 +216,10 @@ export function QuickstartAgentHandoff({
         if (onScreenIdentity.current === startedFor) setFailed(true)
       }
     })()
-  }, [apiKeyApi, boxApi, failed, handoff, hydrated, orgId, permissions, storageKey])
+  }, [apiKeyApi, boxApi, failed, handoff, hydrated, orgId, permissions, identity])
 
   const retry = useCallback(() => {
-    if (storageKey) issuingFor.current.delete(storageKey)
+    if (identity) issuingFor.current.delete(identity)
     setFailed(false)
     setPermissionsTimedOut(false)
     // Members are fetched once per organization and the provider swallows the
@@ -303,7 +227,7 @@ export function QuickstartAgentHandoff({
     // affordance left. Ask for them again, and re-arm the timeout either way.
     setRetryNonce((n) => n + 1)
     void refreshOrganizationMembers().catch(() => undefined)
-  }, [refreshOrganizationMembers, storageKey])
+  }, [refreshOrganizationMembers, identity])
 
   const baselineIds = useMemo(() => (handoff ? new Set(handoff.baselineIds) : null), [handoff])
 
@@ -350,7 +274,7 @@ export function QuickstartAgentHandoff({
           : [...prev.value.baselineIds, finishedBox.id],
         completed: { id: finishedBox.id, name: finishedBox.name },
       }
-      if (prev.identity) writeHandoff(prev.identity, next)
+      if (prev.identity) handoffStore.set(prev.identity, next)
       return { ...prev, value: next }
     })
   }, [reached, finishedBox, onProgressChange])
@@ -371,15 +295,10 @@ export function QuickstartAgentHandoff({
   // screen share or a screenshot of this dialog does not leak a credential.
   const shownPrompt = handoff ? buildPrompt(maskKey(handoff.keyValue)) : ''
 
-  const copy = useCallback(() => {
+  const copy = useCallback(async () => {
     if (!handoff) return
-    try {
-      navigator.clipboard?.writeText(buildPrompt(handoff.keyValue))
-    } catch {
-      /* clipboard may be unavailable */
-    }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1600)
+    setCopied((await copyToClipboard(buildPrompt(handoff.keyValue))) ? 'done' : 'failed')
+    setTimeout(() => setCopied(null), 1600)
   }, [buildPrompt, handoff])
 
   if (permissionsKnown && !canCreateApiKey) {
@@ -408,7 +327,8 @@ export function QuickstartAgentHandoff({
               <span className="mx-[7px] text-border">·</span>
               boxes only
               <span className="mx-[7px] text-border">·</span>
-              {KEY_LIFETIME_DAYS}d
+              {HANDOFF_LIFETIME_DAYS}d<span className="mx-[7px] text-border">·</span>
+              this tab only
             </>
           )}
         </div>
@@ -419,8 +339,9 @@ export function QuickstartAgentHandoff({
           {handoff ? shownPrompt : 'Preparing your key…'}
         </pre>
         <QuickstartCopyButton
-          copied={copied}
-          onClick={copy}
+          copied={copied === 'done'}
+          failed={copied === 'failed'}
+          onClick={() => void copy()}
           className={cn(!handoff && 'pointer-events-none opacity-40')}
         />
       </div>
@@ -470,6 +391,7 @@ export function QuickstartAgentHandoff({
           {stage === 'live' && shownBox && (
             <Link
               to={generatePath(RoutePath.BOX_DETAILS, { boxId: shownBox.id })}
+              onClick={() => onLeave?.()}
               className="inline-flex items-center gap-1 text-foreground hover:text-brand"
             >
               online · open <ArrowUpRight className="size-[11px]" />

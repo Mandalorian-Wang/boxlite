@@ -24,6 +24,7 @@ import { FileText, KeyRound, Server, Terminal } from '@/components/ui/icon'
 import { useApi } from '@/hooks/useApi'
 import { useConfig } from '@/hooks/useConfig'
 import { getRestApiUrl } from '@/lib/environment'
+import { copyToClipboard } from '@/lib/copy-text'
 import { useSelectedOrganization } from '@/hooks/useSelectedOrganization'
 import { handleApiError } from '@/lib/error-handling'
 import { createApiKeyWithFallbackName, DEFAULT_QUICKSTART_API_KEY_NAME } from '@/lib/quickstart-api-key'
@@ -347,6 +348,11 @@ export function OnboardingGuideDialog({ open, onOpenChange, onProgressChange }: 
 
   // The two jobs are peers, but one of them has to be showing on open: a new
   // account has nothing to base the choice on, so it lands on the guided one.
+  //
+  // Changing tabs only changes tabs. It used to reset the walkthrough as well,
+  // so a user who created a key, looked at the other job and came back found it
+  // gone from their snippets — and the plaintext value is returned once, so it
+  // was gone for good. The `open` effect below still resets on each opening.
   const [scenario, setScenario] = useState<ScenarioId>('publish')
   const [step, setStep] = useState(0)
   const [done, setDone] = useState<[boolean, boolean, boolean]>([false, false, false])
@@ -382,15 +388,6 @@ export function OnboardingGuideDialog({ open, onOpenChange, onProgressChange }: 
       setCopiedTarget(null)
     }
   }, [open])
-
-  const enterScenario = (id: ScenarioId) => {
-    setScenario(id)
-    setStep(0)
-    setDone([false, false, false])
-    setCreatedKey(null)
-    setKeyName('')
-    setCopiedTarget(null)
-  }
 
   const finished = done.every(Boolean)
 
@@ -428,12 +425,8 @@ export function OnboardingGuideDialog({ open, onOpenChange, onProgressChange }: 
     }
   }
 
-  const copyText = (value: string, target: CopyTarget) => {
-    try {
-      navigator.clipboard?.writeText(value)
-    } catch {
-      /* clipboard may be unavailable */
-    }
+  const copyText = async (value: string, target: CopyTarget) => {
+    if (!(await copyToClipboard(value))) return
     setCopiedTarget(target)
     setTimeout(() => setCopiedTarget(null), 1400)
   }
@@ -452,10 +445,14 @@ export function OnboardingGuideDialog({ open, onOpenChange, onProgressChange }: 
       >
         {scenario === 'publish' ? (
           <>
-            <ScenarioHeader scenario={scenario} onSelect={enterScenario} />
+            <ScenarioHeader scenario={scenario} onSelect={setScenario} />
 
             <div className="scrollbar-elevated min-h-0 flex-1 overflow-y-auto">
-              <QuickstartAgentHandoff restApiUrl={restApiUrl} onProgressChange={onProgressChange} />
+              <QuickstartAgentHandoff
+                restApiUrl={restApiUrl}
+                onProgressChange={onProgressChange}
+                onLeave={() => onOpenChange(false)}
+              />
             </div>
             <div className="flex shrink-0 items-center border-t border-border px-8 py-4">
               <button
@@ -469,12 +466,7 @@ export function OnboardingGuideDialog({ open, onOpenChange, onProgressChange }: 
           </>
         ) : (
           <>
-            <ScenarioHeader
-              scenario={scenario}
-              onSelect={enterScenario}
-              compact={step > 0}
-              onExpand={() => setStep(0)}
-            />
+            <ScenarioHeader scenario={scenario} onSelect={setScenario} compact={step > 0} onExpand={() => setStep(0)} />
 
             {/* stage rail */}
             <div className="flex shrink-0 items-center px-8 pb-4 pt-6">
@@ -564,7 +556,7 @@ export function OnboardingGuideDialog({ open, onOpenChange, onProgressChange }: 
                     {createdKey ? (
                       <QuickstartCopyButton
                         copied={copiedTarget === 'api-key'}
-                        onClick={() => copyText(createdKey.value, 'api-key')}
+                        onClick={() => void copyText(createdKey.value, 'api-key')}
                       />
                     ) : null}
                   </div>
@@ -618,7 +610,7 @@ export function OnboardingGuideDialog({ open, onOpenChange, onProgressChange }: 
                     </pre>
                     <QuickstartCopyButton
                       copied={copiedTarget === 'install'}
-                      onClick={() => copyText(activeExample.install, 'install')}
+                      onClick={() => void copyText(activeExample.install, 'install')}
                     />
                   </div>
                   <div className="mt-[11px] flex items-start gap-2 text-[11.5px] leading-relaxed text-muted-foreground">
@@ -664,7 +656,7 @@ export function OnboardingGuideDialog({ open, onOpenChange, onProgressChange }: 
                     </Suspense>
                     <QuickstartCopyButton
                       copied={copiedTarget === 'code'}
-                      onClick={() => copyText(renderedExample, 'code')}
+                      onClick={() => void copyText(renderedExample, 'code')}
                       className="absolute right-2 top-2.5"
                     />
                   </div>

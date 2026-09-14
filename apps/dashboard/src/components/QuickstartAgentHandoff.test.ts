@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { findAgentBox, maskKey, shouldIssueKey } from './QuickstartAgentHandoff'
+import { findAgentBox, maskKey } from './QuickstartAgentHandoff'
 
 describe('maskKey', () => {
   it('keeps the prefix and hides every character of the body', () => {
@@ -65,46 +65,5 @@ describe('findAgentBox', () => {
     const agentBoxStampedInThePast = { id: 'box-agent', createdAt: '1999-01-01T00:00:00.000Z' }
 
     expect(findAgentBox([{ id: 'box-old-1' }, agentBoxStampedInThePast], baseline)?.id).toBe('box-agent')
-  })
-})
-
-describe('shouldIssueKey', () => {
-  const ready = {
-    hydrated: true,
-    hasHandoff: false,
-    failed: false,
-    hasOrg: true,
-    storageKey: 'user_orgA',
-    permissionCount: 1,
-    alreadyIssuingForKey: false,
-  }
-
-  it('issues once everything is known and nothing is stored', () => {
-    expect(shouldIssueKey(ready)).toBe(true)
-  })
-
-  it('refuses while the handoff still belongs to the previous identity', () => {
-    // The org-switch mint: the component has re-rendered under org B but its
-    // handoff is still org A's, so an unguarded `handoff === null` reads as
-    // "org B has nothing stored" and a second live key gets minted.
-    expect(shouldIssueKey({ ...ready, hydrated: false, storageKey: 'user_orgB' })).toBe(false)
-  })
-
-  it('refuses when this identity already has a key', () => {
-    expect(shouldIssueKey({ ...ready, hasHandoff: true })).toBe(false)
-  })
-
-  it('refuses while a request for this identity is already open', () => {
-    expect(shouldIssueKey({ ...ready, alreadyIssuingForKey: true })).toBe(false)
-  })
-
-  it('refuses after a failure, so retry is the only way back', () => {
-    expect(shouldIssueKey({ ...ready, failed: true })).toBe(false)
-  })
-
-  it('refuses before permissions or the organization are known', () => {
-    expect(shouldIssueKey({ ...ready, permissionCount: 0 })).toBe(false)
-    expect(shouldIssueKey({ ...ready, hasOrg: false })).toBe(false)
-    expect(shouldIssueKey({ ...ready, storageKey: null })).toBe(false)
   })
 })
