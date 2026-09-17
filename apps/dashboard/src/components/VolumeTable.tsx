@@ -5,6 +5,7 @@
  */
 
 import { DebouncedInput } from '@/components/DebouncedInput'
+import { DOCS_LINKS } from '@/constants/ExternalLinks'
 import { Pagination } from '@/components/Pagination'
 import { SelectionToast } from '@/components/SelectionToast'
 import { Button } from '@/components/ui/button'
@@ -215,7 +216,7 @@ export function VolumeTable({
                     <p>
                       Create one via the SDK or CLI. <br />
                       <a
-                        href="https://docs.boxlite.ai"
+                        href={DOCS_LINKS.volumes}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary hover:underline font-medium"

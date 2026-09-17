@@ -4,6 +4,7 @@
  */
 
 import { DebouncedInput } from '@/components/DebouncedInput'
+import { BOXLITE_DOCS_URL } from '@/constants/ExternalLinks'
 import { Pagination } from '@/components/Pagination'
 import { TableEmptyState } from '@/components/TableEmptyState'
 import {
@@ -202,7 +203,7 @@ export function WebhooksEndpointTable({
                     <p>Create an endpoint to start receiving webhook events.</p>
                     <p>
                       <a
-                        href="https://docs.boxlite.ai"
+                        href={BOXLITE_DOCS_URL}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary hover:underline font-medium"

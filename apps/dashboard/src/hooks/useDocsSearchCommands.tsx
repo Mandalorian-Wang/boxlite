@@ -17,6 +17,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import type { liteClient } from 'algoliasearch/lite'
 import { BookOpen, Code2, Container, Terminal } from '@/components/ui/icon'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
+import { BOXLITE_DOCS_URL } from '@/constants/ExternalLinks'
 
 const ALGOLIA_APP_ID = import.meta.env.VITE_ALGOLIA_APP_ID
 const ALGOLIA_API_KEY = import.meta.env.VITE_ALGOLIA_API_KEY
@@ -117,7 +118,7 @@ export const useDocsSearchQuery = ({ search, enabled }: { search: string; enable
 }
 
 const openDocs = (path = '') => {
-  window.open(`https://docs.boxlite.ai${path}`, '_blank')
+  window.open(`${BOXLITE_DOCS_URL}${path}`, '_blank')
 }
 
 const SearchSnippet = ({
@@ -168,7 +169,7 @@ const parseSDKLanguage = (hit: AlgoliaHit) => {
 }
 
 const handleSelect = (hit: AlgoliaHit) => {
-  const url = `https://docs.boxlite.ai${hit.url}`
+  const url = `${BOXLITE_DOCS_URL}${hit.url}`
   window.open(url, '_blank')
 }
 

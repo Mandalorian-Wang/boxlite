@@ -5,6 +5,7 @@
  */
 
 import { CREATE_API_KEY_PERMISSIONS_GROUPS } from '@/constants/CreateApiKeyPermissionsGroups'
+import { DOCS_LINKS } from '@/constants/ExternalLinks'
 import { getRelativeTimeString } from '@/lib/utils'
 import { ApiKeyList, ApiKeyListPermissionsEnum } from '@boxlite-ai/api-client'
 import { KeyRound, Loader2, Trash2 } from '@/components/ui/icon'
@@ -68,7 +69,7 @@ export function ApiKeyTable({ data, loading, isLoadingKey, onRevoke }: DataTable
             <div className="mt-1.5 text-[13.5px] text-muted-foreground">
               Generate one and{' '}
               <a
-                href="https://docs.boxlite.ai"
+                href={DOCS_LINKS.apiKeys}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-semibold text-foreground underline decoration-brand underline-offset-2"

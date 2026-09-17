@@ -4,6 +4,7 @@
  */
 
 import { PageContent, PageHeader, PageLayout, PageTitle } from '@/components/PageLayout'
+import { BOXLITE_DOCS_URL } from '@/constants/ExternalLinks'
 import { CreateEndpointDialog } from '@/components/Webhooks/CreateEndpointDialog'
 import { WebhooksEndpointTable } from '@/components/Webhooks/WebhooksEndpointTable'
 import { WebhooksMessagesTable } from '@/components/Webhooks/WebhooksMessagesTable/WebhooksMessagesTable'
@@ -101,7 +102,7 @@ const Webhooks: React.FC = () => {
     <PageLayout>
       <PageHeader size="full">
         <PageTitle>Webhooks</PageTitle>
-        <a href="https://docs.boxlite.ai" target="_blank" rel="noopener noreferrer" className="ml-auto">
+        <a href={BOXLITE_DOCS_URL} target="_blank" rel="noopener noreferrer" className="ml-auto">
           <Button variant="link" size="sm">
             Docs
           </Button>
