@@ -14,6 +14,7 @@ interface CodeBlockProps {
   code: string
   language: string
   showCopy?: boolean
+  preserveWhitespace?: boolean
   codeAreaClassName?: string
   className?: string
 }
@@ -105,7 +106,14 @@ function registerBashGrammar() {
 
 registerBashGrammar()
 
-const CodeBlock: React.FC<CodeBlockProps> = ({ code, language, showCopy = true, codeAreaClassName, className }) => {
+const CodeBlock: React.FC<CodeBlockProps> = ({
+  code,
+  language,
+  showCopy = true,
+  preserveWhitespace = false,
+  codeAreaClassName,
+  className,
+}) => {
   const { resolvedTheme } = useTheme()
   const highlightLanguage = languageAliases[language] ?? language
 
@@ -118,7 +126,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language, showCopy = true, 
     >
       <Highlight
         theme={(resolvedTheme === 'dark' ? oneDark : oneLight) as PrismTheme}
-        code={code.trim()}
+        code={preserveWhitespace ? code : code.trim()}
         language={highlightLanguage}
       >
         {({ style, tokens, getLineProps, getTokenProps }: HighlightProps) => (
@@ -147,7 +155,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language, showCopy = true, 
       </Highlight>
       {showCopy && (
         <CopyButton
-          value={code.trim()}
+          value={preserveWhitespace ? code : code.trim()}
           variant="ghost"
           className="absolute right-2 top-2.5 bg-background/80 p-2 text-muted-foreground shadow-sm ring-1 ring-border/70 backdrop-blur hover:bg-muted hover:text-foreground"
         />

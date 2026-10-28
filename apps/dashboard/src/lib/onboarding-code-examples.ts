@@ -1,9 +1,11 @@
 import definitions from './quickstart/interfaces.json'
 import cTemplate from './quickstart/templates/c.c?raw'
 import cliTemplate from './quickstart/templates/cli.sh?raw'
+import cliStepsTemplate from './quickstart/templates/cli-steps.sh?raw'
 import goTemplate from './quickstart/templates/go.go?raw'
 import pythonTemplate from './quickstart/templates/python.py?raw'
 import restTemplate from './quickstart/templates/rest.sh?raw'
+import restWaitTemplate from './quickstart/templates/rest-wait.sh?raw'
 import rustTemplate from './quickstart/templates/rust.rs?raw'
 import typescriptTemplate from './quickstart/templates/typescript.mts?raw'
 import type {
@@ -55,7 +57,22 @@ export BOXLITE_API_KEY`
 
 function buildTemplateValues(options: RenderOnboardingCodeExampleOptions): TemplateValues {
   const apiKey = options.apiKey
+  const command = options.command ?? { executable: 'echo', args: ['Hello from BoxLite SDK'] }
   return {
+    REST_EXECUTION_RESULT: options.command
+      ? restWaitTemplate.trimEnd()
+      : 'curl -fsS "${BOXLITE_REST_URL}/v1/boxes/${box_id}/executions/${exec_id}" "${auth[@]}" | jq',
+    COMMAND_LITERAL: doubleQuoted(command.executable),
+    ARGUMENT_LITERALS: command.args.map(doubleQuoted).join(', '),
+    ARGUMENT_COUNT: String(command.args.length),
+    RUST_ARGUMENTS: command.args.map((arg) => `.arg(${doubleQuoted(arg)})`).join(''),
+    C_ARGUMENTS: (options.command?.args ?? ['Hello from BoxLite C SDK']).map(doubleQuoted).join(', '),
+    SHELL_COMMAND: options.command
+      ? [command.executable, ...command.args].map(shellSingleQuoted).join(' ')
+      : 'echo "Hello from BoxLite CLI"',
+    EXEC_JSON_SH: shellSingleQuoted(
+      JSON.stringify({ command: command.executable, args: options.command?.args ?? ['Hello from BoxLite REST'] }),
+    ),
     API_KEY_C: apiKey ? doubleQuoted(apiKey) : 'getenv("BOXLITE_API_KEY")',
     API_KEY_GO: apiKey ? doubleQuoted(apiKey) : 'os.Getenv("BOXLITE_API_KEY")',
     API_KEY_PY: apiKey ? doubleQuoted(apiKey) : 'os.environ["BOXLITE_API_KEY"]',
@@ -125,4 +142,28 @@ export function renderOnboardingCodeExample(
   options: RenderOnboardingCodeExampleOptions,
 ): string {
   return renderExample(getDefinition(selectedInterface), buildTemplateValues(options)).example
+}
+
+// These sections share program scope and must be saved in order in one file.
+export function renderOnboardingCodeSteps(
+  selectedInterface: OnboardingInterface,
+  options: RenderOnboardingCodeExampleOptions,
+) {
+  const example =
+    selectedInterface === 'cli'
+      ? renderTemplate(cliStepsTemplate, buildTemplateValues(options))
+      : renderOnboardingCodeExample(selectedInterface, options)
+  const boundaries: Record<string, string> = {
+    python: '    execution = await box.exec(',
+    typescript: 'const exec = await box.exec(',
+    go: '    result, err := box.Exec(',
+    rust: '    let mut exec = box_handle',
+    c: '    const char *args[] =',
+    rest: 'exec_id="$(',
+    cli: 'boxlite exec "$box_name"',
+  }
+  const boundary = boundaries[selectedInterface]
+  const index = boundary ? example.indexOf(`\n${boundary}`) : -1
+  if (index < 0) throw new Error(`Missing execution boundary for ${selectedInterface}`)
+  return { creation: example.slice(0, index).trimEnd(), execution: example.slice(index + 1), example }
 }

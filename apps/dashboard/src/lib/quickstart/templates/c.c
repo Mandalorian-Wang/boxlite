@@ -175,8 +175,8 @@ int main(void) {
     require_ok(boxlite_start_box(qs.box, on_done, &qs, &error), "start box", &error);
     wait_until_done(&qs);
 
-    const char *args[] = {"Hello from BoxLite C SDK"};
-    BoxliteCommand cmd = {.command = "echo", .args = args, .argc = 1};
+    const char *args[] = { {{C_ARGUMENTS}} };
+    BoxliteCommand cmd = {.command = {{COMMAND_LITERAL}}, .args = args, .argc = {{ARGUMENT_COUNT}}};
     require_ok(boxlite_box_exec(qs.box, &cmd, &qs.exec, &error), "exec", &error);
     require_ok(
         boxlite_execution_on_stdout(qs.exec, on_stdout, NULL, &error),

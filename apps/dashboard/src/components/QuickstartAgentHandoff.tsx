@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: AGPL-3.0
  */
 
+import { usePromptDraft } from '@/hooks/usePromptDraft'
+import { CODING_AGENT_MARKS } from '@/assets/AgentLogos'
 import { QuickstartCopyButton } from '@/components/QuickstartCopyButton'
 import { useApi } from '@/hooks/useApi'
 import { useSelectedOrganization } from '@/hooks/useSelectedOrganization'
@@ -66,23 +68,37 @@ export function findAgentBox(boxes: HandoffBox[] | undefined, baselineIds: Reado
   return boxes.find((box) => !baselineIds.has(box.id)) ?? null
 }
 
-export function QuickstartAgentHandoff({
+export function QuickstartAgentHandoff(props: Parameters<typeof QuickstartAgentHandoffContent>[0]) {
+  const { selectedOrganization } = useSelectedOrganization()
+  const userId = useAuth().user?.profile.sub
+  return <QuickstartAgentHandoffContent key={`${userId}:${selectedOrganization?.id}`} {...props} />
+}
+
+function QuickstartAgentHandoffContent({
   restApiUrl,
+  composeRequest = false,
   onProgressChange,
   onLeave,
 }: {
   restApiUrl: string
+  composeRequest?: boolean
   onProgressChange: (progress: OnboardingProgress) => void
   /** Following a link out of the dialog has to close it: the host lives in the
    *  persistent dashboard shell, so its `open` survives the navigation and the
    *  dialog would sit on top of the page it sent the user to. */
   onLeave?: () => void
 }) {
-  const { apiKeyApi, boxApi } = useApi()
+  const [copiedRequest, setCopiedRequest] = useState<string | null>(null)
+  const [copying, setCopying] = useState(false)
+  const api = useApi()
+  const { apiKeyApi, boxApi } = api
   const { selectedOrganization, organizationMembers, refreshOrganizationMembers, authenticatedUserHasPermission } =
     useSelectedOrganization()
   const userId = useAuth().user?.profile.sub
   const orgId = selectedOrganization?.id
+  const draft = usePromptDraft(orgId, userId, composeRequest)
+  const { text: request, setText: setRequest } = draft
+  const submission = useRef<{ text: string; id: string } | null>(null)
   const identity = userId && orgId ? handoffIdentity(userId, orgId) : null
 
   // Members load in the background, and the permission check reads false until
@@ -130,14 +146,14 @@ export function QuickstartAgentHandoff({
   // unmounts this component, so returning must not restart the wait).
   const restoredFor = useRef<string | null>(null)
   useEffect(() => {
-    if (!shouldRestoreCompletion({ hydrated, restoredFor: restoredFor.current, identity })) return
+    if (composeRequest || !shouldRestoreCompletion({ hydrated, restoredFor: restoredFor.current, identity })) return
     restoredFor.current = identity
     const done = handoff?.completed ?? null
     if (done) {
       setFinishedBox(done)
       setReached(true)
     }
-  }, [hydrated, handoff, identity])
+  }, [hydrated, handoff, identity, composeRequest])
   // A set, not one ref: switching org A -> B -> A while A's request is still
   // open would let a single slot be overwritten and then re-enter, minting a
   // second key for A. Membership is per identity and only cleared on failure.
@@ -233,7 +249,7 @@ export function QuickstartAgentHandoff({
 
   const { data: boxes } = useQuery({
     queryKey: ['quickstart-handoff-boxes', orgId],
-    enabled: Boolean(orgId) && baselineIds !== null,
+    enabled: !composeRequest && Boolean(orgId) && baselineIds !== null,
     // The stage is terminal, so stop polling once it lands.
     refetchInterval: reached ? false : POLL_INTERVAL_MS,
     // The whole point of this screen is that the user copies the prompt and
@@ -244,7 +260,10 @@ export function QuickstartAgentHandoff({
     queryFn: async () => (await boxApi.listBoxesPaginated(orgId, 1, POLL_PAGE_SIZE)).data.items as HandoffBox[],
   })
 
-  const agentBox = useMemo(() => findAgentBox(boxes, baselineIds), [boxes, baselineIds])
+  const agentBox = useMemo(
+    () => (composeRequest ? null : findAgentBox(boxes, baselineIds)),
+    [boxes, baselineIds, composeRequest],
+  )
   // Publishing is only done once the box is actually reachable.
   const stageDone = agentBox ? isInboundEnabled(agentBox) : false
 
@@ -255,7 +274,7 @@ export function QuickstartAgentHandoff({
   }, [stageDone, agentBox])
 
   useEffect(() => {
-    if (!reached) return
+    if (!reached || composeRequest) return
     onProgressChange({ boxCreated: true, sdkConnected: true })
     if (!finishedBox) return
     // The key and the baseline are kept, not cleared. Clearing them made
@@ -277,18 +296,28 @@ export function QuickstartAgentHandoff({
       if (prev.identity) handoffStore.set(prev.identity, next)
       return { ...prev, value: next }
     })
-  }, [reached, finishedBox, onProgressChange])
+  }, [reached, finishedBox, onProgressChange, composeRequest])
 
   const buildPrompt = useCallback(
     (apiKey: string) =>
       [
-        ASK,
+        composeRequest
+          ? `Read ${AGENT_GUIDE_URL}. Work from this local coding-agent session.
+
+Application request: ${request.trim()}
+
+Build and test the application inside a Box. Choose an appropriate image. Use the documented BoxLite API to start the application and configure its network access. Verify the application is reachable before returning its URL. Explain any unsupported deployment requirements.
+
+Verify that the credentials are valid and authorized for this task before executing anything.`
+          : ASK,
         '',
-        'My BoxLite credentials — put these in my shell profile first:',
+        composeRequest
+          ? 'Use these credentials for this task; do not commit them:'
+          : 'My BoxLite credentials — put these in my shell profile first:',
         `BOXLITE_REST_URL=${restApiUrl}`,
         `BOXLITE_API_KEY=${apiKey}`,
       ].join('\n'),
-    [restApiUrl],
+    [restApiUrl, composeRequest, request],
   )
 
   // Only the clipboard carries the real key. On screen it stays masked, so a
@@ -296,15 +325,41 @@ export function QuickstartAgentHandoff({
   const shownPrompt = handoff ? buildPrompt(maskKey(handoff.keyValue)) : ''
 
   const copy = useCallback(async () => {
-    if (!handoff) return
-    setCopied((await copyToClipboard(buildPrompt(handoff.keyValue))) ? 'done' : 'failed')
-    setTimeout(() => setCopied(null), 1600)
-  }, [buildPrompt, handoff])
+    if (!handoff || (composeRequest && !request.trim())) return
+    setCopying(true)
+    try {
+      if (composeRequest) {
+        await draft.flush()
+        if (!submission.current || submission.current.text !== request)
+          submission.current = { text: request, id: crypto.randomUUID() }
+        await api.preparePromptHandoff(orgId!, request, submission.current.id)
+      }
+      const success = await copyToClipboard(buildPrompt(handoff.keyValue))
+      if (!success) {
+        setCopied('failed')
+        return
+      }
+      if (composeRequest) await api.markPromptCopied(orgId!, submission.current!.id)
+      setCopied('done')
+      setCopiedRequest(`${identity}:${request}`)
+      if (!composeRequest) setTimeout(() => setCopied(null), 1600)
+    } catch {
+      setCopied('failed')
+    } finally {
+      setCopying(false)
+    }
+  }, [api, orgId, draft, buildPrompt, handoff, composeRequest, request, identity])
 
   // Three stages, one row each, and nothing else moves: the card is the only
   // thing on this screen that changes after the copy, so it is where the eye
   // should be able to rest.
-  const stage: 'waiting' | 'building' | 'live' = reached ? 'live' : agentBox ? 'building' : 'waiting'
+  const stage: 'waiting' | 'building' | 'live' = composeRequest
+    ? 'waiting'
+    : reached
+      ? 'live'
+      : agentBox
+        ? 'building'
+        : 'waiting'
   const shownBox = finishedBox ?? agentBox
 
   // The user copies the prompt and leaves for their agent; the tab title is the
@@ -327,6 +382,123 @@ export function QuickstartAgentHandoff({
     )
   }
 
+  if (composeRequest) {
+    const handedOff = copiedRequest === `${identity}:${request}`
+    return (
+      <section className="max-w-[1080px] pb-8 font-display">
+        <div className="mb-7 flex flex-wrap items-center gap-6 text-muted-foreground" aria-label="Local coding agents">
+          {CODING_AGENT_MARKS.map(({ label, Mark }) => (
+            <span key={label} title={label} className="inline-flex size-8 items-center justify-center">
+              <Mark className="size-7 object-contain" />
+            </span>
+          ))}
+        </div>
+        <h2 className="text-xl font-semibold tracking-tight">What would you like to build?</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Describe your app. Your coding agent will build and deploy it in a Box, with a public URL you can share.
+        </p>
+        <div className="mt-5 rounded-sm bg-card p-4 focus-within:ring-1 focus-within:ring-brand/50 sm:p-5">
+          <textarea
+            aria-label="Application request"
+            placeholder="An app that…"
+            value={request}
+            onChange={(event) => {
+              setRequest(event.target.value)
+              setCopiedRequest(null)
+              setCopied(null)
+            }}
+            maxLength={16000}
+            disabled={!draft.ready}
+            onBlur={() => {
+              if (draft.ready) void draft.flush().catch(() => {})
+            }}
+            rows={3}
+            className="w-full resize-y bg-transparent text-base leading-relaxed outline-none placeholder:text-muted-foreground/60"
+          />
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
+            <span className="text-xs text-muted-foreground" role="status">
+              {draft.error ? (
+                <>
+                  {draft.error}{' '}
+                  <button onClick={() => void draft.retry().catch(() => {})} className="underline">
+                    Retry
+                  </button>
+                </>
+              ) : !draft.ready ? (
+                'Loading draft…'
+              ) : draft.saving || draft.dirty ? (
+                'Saving…'
+              ) : (
+                'Saved'
+              )}
+            </span>
+            <button
+              type="button"
+              disabled={!handoff || !draft.ready || !request.trim() || copying}
+              onClick={() => void copy()}
+              className="rounded-sm bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-35"
+            >
+              {copying ? 'Copying…' : handedOff ? 'Copy again' : 'Copy prompt'}
+            </button>
+          </div>
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
+          <span>Try an idea</span>
+          {[
+            ['Internal dashboard', 'Build an internal dashboard to track projects, owners, and deadlines.'],
+            ['API service', 'Build a REST API for a task list with persistent storage.'],
+            ['Personal website', 'Build a personal portfolio website with projects and a contact page.'],
+          ].map(([label, value]) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => {
+                setRequest(value)
+                setCopiedRequest(null)
+                setCopied(null)
+              }}
+              className="underline decoration-muted-foreground/30 underline-offset-4 hover:text-foreground focus-visible:outline-brand"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {(failed || permissionsTimedOut) && (
+          <p className="mt-4 text-sm text-destructive">
+            Could not prepare your key.{' '}
+            <button type="button" onClick={retry} className="underline">
+              Try again
+            </button>
+          </p>
+        )}
+        {!handoff && !failed && !permissionsTimedOut && (
+          <p className="mt-4 text-xs text-muted-foreground" role="status">
+            Preparing your key…
+          </p>
+        )}
+        {copied === 'failed' && (
+          <p role="alert" className="mt-4 text-sm text-destructive">
+            Could not save or copy the prompt. Your text is still here. Try again.
+          </p>
+        )}
+        {handedOff && (
+          <div role="status" className="mt-6 bg-brand/[0.06] px-5 py-4">
+            <p className="text-sm font-medium">Prompt copied. Continue in your coding agent.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Paste the prompt into your local coding agent’s chat and review the proposed actions.
+            </p>
+          </div>
+        )}
+        <details className="mt-6 text-sm text-muted-foreground">
+          <summary className="w-fit cursor-pointer hover:text-foreground">View prompt</summary>
+          <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-sm bg-[hsl(var(--code-background))] p-4 font-mono text-xs leading-relaxed text-foreground">
+            {handoff ? shownPrompt : 'Preparing your key…'}
+          </pre>
+        </details>
+      </section>
+    )
+  }
+
   return (
     <div className="px-8 pb-6 pt-6">
       <div className="mb-2 flex items-center justify-between gap-4">
@@ -341,15 +513,21 @@ export function QuickstartAgentHandoff({
         </div>
       </div>
 
-      <div className="flex items-start gap-3 border border-border bg-[hsl(var(--code-background))] px-[14px] py-3">
+      <div
+        className={cn(
+          'flex items-start gap-3 bg-[hsl(var(--code-background))] px-[14px] py-3',
+          composeRequest ? 'rounded-sm' : 'border border-border',
+        )}
+      >
         <pre className="scrollbar-elevated min-w-0 flex-1 overflow-x-auto whitespace-pre-wrap break-words text-[12.5px] leading-[1.7] text-foreground">
           {handoff ? shownPrompt : 'Preparing your key…'}
         </pre>
         <QuickstartCopyButton
+          quiet={composeRequest}
           copied={copied === 'done'}
           failed={copied === 'failed'}
           onClick={() => void copy()}
-          className={cn(!handoff && 'pointer-events-none opacity-40')}
+          className={cn((!handoff || (composeRequest && !request.trim())) && 'pointer-events-none opacity-40')}
         />
       </div>
 
@@ -370,8 +548,9 @@ export function QuickstartAgentHandoff({
       </div>
       <div
         className={cn(
-          'mt-2 flex items-center gap-3 border px-4 py-3 transition-colors',
-          stage === 'live' ? 'border-brand bg-[hsl(var(--brand)/0.06)]' : 'border-border',
+          'mt-2 flex items-center gap-3 px-4 py-3 transition-colors',
+          composeRequest ? 'rounded-sm bg-card' : 'border',
+          !composeRequest && (stage === 'live' ? 'border-brand bg-[hsl(var(--brand)/0.06)]' : 'border-border'),
         )}
         // Re-mount on each stage so the row arrives rather than flips.
         key={stage}

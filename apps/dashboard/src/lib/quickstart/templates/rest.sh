@@ -20,8 +20,8 @@ curl -fsS -X POST "${BOXLITE_REST_URL}/v1/boxes/${box_id}/start" "${auth[@]}" >/
 exec_id="$(
   curl -fsS -X POST "${BOXLITE_REST_URL}/v1/boxes/${box_id}/exec" \
     "${auth[@]}" "${json[@]}" \
-    -d '{"command":"echo","args":["Hello from BoxLite REST"]}' \
+    -d {{EXEC_JSON_SH}} \
     | jq -r '.execution_id'
 )"
 
-curl -fsS "${BOXLITE_REST_URL}/v1/boxes/${box_id}/executions/${exec_id}" "${auth[@]}" | jq
+{{REST_EXECUTION_RESULT}}

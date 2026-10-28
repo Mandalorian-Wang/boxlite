@@ -174,17 +174,19 @@ describe('Boxes page, empty account', () => {
     expect(document.querySelector('h1')?.textContent).toBe('Boxes')
     // The create affordance still belongs to the page, not to the empty state.
     expect(document.querySelector('[data-testid="create-box-dialog"]')).not.toBeNull()
-    expect(onboardingIsOpen()).toBe('false')
+    expect(onboardingIsOpen()).toBeUndefined()
+    expect(navigate).not.toHaveBeenCalled()
   })
 
-  it('opens the guide from the empty state, rather than inlining a second copy', () => {
+  it('navigates from the unchanged empty state to the dedicated Quickstart', () => {
     render()
 
     const openQuickstart = required(buttonWith('Open Quickstart'), 'Open Quickstart button')
 
     act(() => openQuickstart.click())
 
-    expect(onboardingIsOpen()).toBe('true')
+    expect(onboardingIsOpen()).toBeUndefined()
+    expect(navigate.mock.calls.at(-1)?.[0]).toBe('/dashboard/quickstart')
   })
 
   it('navigates to a box when its row is clicked, and arms delete from the row menu', () => {
@@ -221,7 +223,8 @@ describe('Boxes page, empty account', () => {
     // Nothing is known yet, so every count falls back rather than reading as a
     // real zero from the server, and the page still stands up.
     expect(document.querySelector('h1')?.textContent).toBe('Boxes')
-    expect(onboardingIsOpen()).toBe('false')
+    expect(onboardingIsOpen()).toBeUndefined()
+    expect(navigate).not.toHaveBeenCalled()
   })
 
   it('waits for both account-state queries before deciding to auto-open the guide', () => {
@@ -230,15 +233,17 @@ describe('Boxes page, empty account', () => {
     state.boxCountPending = true
     render()
 
-    expect(onboardingIsOpen()).toBe('false')
+    expect(onboardingIsOpen()).toBeUndefined()
+    expect(navigate).not.toHaveBeenCalled()
   })
 
-  it('opens the guide by itself for an account with no keys and no boxes', () => {
+  it('opens welcome first for a new account with no keys and no boxes', () => {
     // Nothing dismissed anywhere, and both account signals say the account is
     // empty: this is someone's first visit, so the guide leads.
     localStorage.clear()
     render()
 
-    expect(onboardingIsOpen()).toBe('true')
+    expect(onboardingIsOpen()).toBeUndefined()
+    expect(navigate.mock.calls.at(-1)?.[0]).toBe('/dashboard/welcome')
   })
 })

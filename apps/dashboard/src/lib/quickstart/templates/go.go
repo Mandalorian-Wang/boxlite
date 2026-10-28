@@ -44,7 +44,7 @@ func main() {
         log.Fatal(err)
     }
 
-    result, err := box.Exec(ctx, "echo", "Hello from BoxLite SDK")
+    result, err := box.Exec(ctx, {{COMMAND_LITERAL}}, {{ARGUMENT_LITERALS}})
     if err != nil {
         log.Fatal(err)
     }
