@@ -468,7 +468,7 @@ organization membership.
 </details>
 
 <details>
-<summary><b>Execution, files, metrics, and networking</b> · 12 routes</summary>
+<summary><b>Execution, files, metrics, networking, and SSH</b> · 15 routes</summary>
 
 | Method   | Path                                                          | What it does                                            |
 | -------- | ------------------------------------------------------------- | ------------------------------------------------------- |
@@ -484,10 +484,22 @@ organization membership.
 | `POST`   | `/api/v1[/{prefix}]/boxes/{boxId}/network/tunnel?port={port}` | Prepares a tunnel with optional `isPublic` (default true); returns `uri`, `isPublic`, `token`. Private tokens are complete once, then masked. |
 | `DELETE` | `/api/v1[/{prefix}]/boxes/{boxId}/network/tunnel?port={port}` | Revokes either access mode; `204`, idempotent. |
 | `PUT`    | `/api/v1[/{prefix}]/boxes/{boxId}/network/inbound`            | Enables or disables a box's inbound access.             |
+| `POST`   | `/api/v1[/{prefix}]/boxes/{boxId}/ssh`                        | Replaces guest SSH configuration once; counts as activity and may auto-resume a box. |
+| `GET`    | `/api/v1[/{prefix}]/boxes/{boxId}/ssh`                        | Reads guest SSH status without resuming the box or counting as activity. |
+| `DELETE` | `/api/v1[/{prefix}]/boxes/{boxId}/ssh`                        | Disables guest SSH without resuming the box or counting as activity. |
 
 The exec, signal, resize, files, and metrics handlers are registered as
 catch-all reverse proxies to the box's assigned runner; the methods shown are
 the portable contract, which the runner's own route registration enforces.
+
+SSH configuration uses the reported lifecycle state for admission: a stored
+`stopped` or `unknown` state with desired state `started` is treated as `starting`
+or `creating`, respectively. With auto-resume enabled, configuration waits for
+that start, including for boxes with an explicit `cmd` or `entrypoint`. Before
+submitting a new start, the API rechecks SSH startup restrictions against the
+current box state under its lifecycle lock. The API waits for readiness before
+forwarding configuration; the runner checks that the box is running and returns
+`409 invalid_state` if that check fails.
 
 </details>
 
@@ -648,7 +660,7 @@ runtime and its microVMs.
 </details>
 
 <details>
-<summary><b>Embedded BoxLite operations</b> · 10 routes</summary>
+<summary><b>Embedded BoxLite operations</b> · 13 routes</summary>
 
 | Method    | Path                                           | What it does                                          |
 | --------- | ---------------------------------------------- | ----------------------------------------------------- |
@@ -662,6 +674,9 @@ runtime and its microVMs.
 | `GET`     | `/v1/boxes/{boxId}/files?path={path}`          | Downloads a local box path as a tar stream.           |
 | `GET`     | `/v1/boxes/{boxId}/metrics`                    | Returns local box metrics.                            |
 | `CONNECT` | `/v1/boxes/{boxId}/network/tunnel?port={port}` | Opens a raw bidirectional TCP tunnel to a guest port; answers `409` with code `box_not_running` for a box that is not running, which the proxy uses to wake the box. |
+| `POST`    | `/v1/boxes/{boxId}/ssh`                        | Configures guest SSH once after checking that the box is running; otherwise `409 invalid_state`. |
+| `GET`     | `/v1/boxes/{boxId}/ssh`                        | Reads guest SSH status; a stopped box answers disabled status without a handle. |
+| `DELETE`  | `/v1/boxes/{boxId}/ssh`                        | Disables guest SSH; never boots the box.              |
 
 </details>
 
