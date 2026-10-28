@@ -75,6 +75,7 @@ async function click(el: HTMLElement | undefined) {
 }
 
 beforeEach(() => {
+  vi.useFakeTimers()
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
   mocks.listBoxes.mockReset()
   sessionStorage.clear()
@@ -85,6 +86,8 @@ afterEach(() => {
   act(() => root?.unmount())
   root = null
   document.body.innerHTML = ''
+  vi.clearAllTimers()
+  vi.useRealTimers()
   vi.clearAllMocks()
 })
 
@@ -324,6 +327,8 @@ it('copies each SDK/CLI step with a named key and switches all supported interfa
     expect(copies.length).toBeGreaterThanOrEqual(4)
     for (const copy of copies) await click(copy)
     expect(document.body.textContent).toContain('✓ Copied')
+    await act(async () => vi.advanceTimersByTime(1400))
+    expect(document.body.textContent).not.toContain('✓ Copied')
   }
   expect(mocks.copy).toHaveBeenCalledWith(expect.stringContaining('curl'))
   expect(mocks.copy).toHaveBeenCalledWith('blk_live_theOnlyCopy')
