@@ -57,7 +57,7 @@ export function ConsoleTemplatePicker() {
             placeholder="Search templates…"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            className="h-8 w-full rounded-sm bg-card px-3 font-display text-xs outline-none focus-visible:ring-1 focus-visible:ring-brand sm:w-44"
+            className="h-8 w-full rounded-none bg-card px-3 font-display text-xs outline-none focus-visible:ring-1 focus-visible:ring-brand sm:w-44"
           />
         </div>
         <p className="mt-2 font-display text-xs text-muted-foreground">
@@ -101,7 +101,7 @@ export function ConsoleTemplatePicker() {
                   createBox.reset()
                 }}
                 className={cn(
-                  'group min-h-[104px] rounded-sm p-3 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand disabled:opacity-45',
+                  'group min-h-[104px] rounded-none p-3 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand disabled:opacity-45',
                   activeId === item.id ? 'bg-accent' : 'bg-card hover:bg-accent',
                 )}
               >
@@ -110,9 +110,7 @@ export function ConsoleTemplatePicker() {
                   <span className="font-display text-xs font-semibold">{item.name}</span>
                   {activeId === item.id && <span className="ml-auto text-xs text-brand">✓</span>}
                 </div>
-                <p className="mt-2 font-display text-[11px] leading-relaxed text-muted-foreground">
-                  {item.description}
-                </p>
+                <p className="mt-2 font-display text-label leading-relaxed text-muted-foreground">{item.description}</p>
               </button>
             ))}
           </div>
@@ -123,7 +121,7 @@ export function ConsoleTemplatePicker() {
           )}
         </div>
       </div>
-      <div className="flex min-w-0 flex-col rounded-sm bg-card px-5 py-5">
+      <div className="flex min-w-0 flex-col rounded-none bg-card px-5 py-5">
         <div className="flex items-start justify-between gap-3">
           <h3 className="flex items-center gap-3 font-display text-base font-semibold">
             <TemplateIcon id={activeId} />
@@ -132,7 +130,7 @@ export function ConsoleTemplatePicker() {
         </div>
         <label className="mt-5 grid gap-2 font-display text-xs text-muted-foreground">
           Image
-          <code className="break-all font-mono text-[11px] leading-relaxed text-foreground">{image}</code>
+          <code className="break-all font-mono text-label leading-relaxed text-foreground">{image}</code>
         </label>
         <label className="mt-5 grid gap-2 font-display text-xs text-muted-foreground">
           Box name
@@ -141,10 +139,10 @@ export function ConsoleTemplatePicker() {
             value={name}
             onChange={(event) => setName(event.target.value)}
             maxLength={40}
-            className="w-full rounded-sm border border-border/60 bg-transparent p-2.5 text-foreground outline-none focus:border-brand disabled:border-transparent disabled:bg-transparent disabled:p-0"
+            className="w-full rounded-none border border-border/60 bg-transparent p-2.5 text-foreground outline-none focus:border-brand disabled:border-transparent disabled:bg-transparent disabled:p-0"
           />
         </label>
-        <p className="mt-4 font-mono text-[10px] text-muted-foreground">
+        <p className="mt-4 font-mono text-label text-muted-foreground">
           {selected?.cpu ?? 1} vCPU · {selected?.memoryGiB ?? 1} GiB · {selected?.diskGiB ?? 10} GiB disk · Cloud
         </p>
         {selected?.preparation && (

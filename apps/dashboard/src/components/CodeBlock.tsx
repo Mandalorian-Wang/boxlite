@@ -120,7 +120,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
   return (
     <div
       className={cn(
-        'relative min-w-0 max-w-full overflow-hidden rounded-lg border border-border/80 bg-[hsl(var(--code-background))] shadow-sm dark:border-white/10',
+        'relative min-w-0 max-w-full overflow-hidden rounded-none border border-border/80 bg-[hsl(var(--code-background))] shadow-sm dark:border-white/10',
         className,
       )}
     >
@@ -132,7 +132,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
         {({ style, tokens, getLineProps, getTokenProps }: HighlightProps) => (
           <pre
             className={cn(
-              'scrollbar-elevated overflow-x-auto rounded-lg p-4 pr-12 text-[13px] leading-6',
+              'scrollbar-elevated overflow-x-auto rounded-none p-4 pr-12 text-body leading-6',
               codeAreaClassName,
             )}
             style={style}

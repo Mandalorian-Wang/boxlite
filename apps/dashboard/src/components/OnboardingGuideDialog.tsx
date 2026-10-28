@@ -186,7 +186,7 @@ function CornerMarks() {
   return (
     <span
       aria-hidden
-      className="pointer-events-none absolute inset-0 font-mono text-[11px] leading-none text-foreground"
+      className="pointer-events-none absolute inset-0 font-mono text-label leading-none text-foreground"
     >
       <span className="absolute -left-px -top-px">┌</span>
       <span className="absolute -right-px -top-px">┐</span>
@@ -225,7 +225,7 @@ function ScenarioHeader({
         <button
           type="button"
           onClick={onExpand}
-          className="text-[11.5px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+          className="text-meta text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
         >
           Change
         </button>
@@ -385,7 +385,7 @@ function InterfacePicker({
         if (items.length === 0) return null
         return (
           <div key={group.id} className="min-w-0">
-            <div className="mb-[9px] text-[9px] uppercase tracking-[1.5px] text-muted-foreground">{group.label}</div>
+            <div className="mb-[9px] text-label uppercase tracking-[1.5px] text-muted-foreground">{group.label}</div>
             <div className="flex flex-wrap gap-2">
               {items.map((item) => {
                 const on = selected === item.id
@@ -396,11 +396,11 @@ function InterfacePicker({
                     aria-pressed={on}
                     onClick={() => onSelect(item.id)}
                     className={cn(
-                      'flex min-h-[34px] items-center justify-center gap-2 px-[12px] py-[7px] text-[12px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand',
+                      'flex min-h-[34px] items-center justify-center gap-2 px-[12px] py-[7px] text-meta transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand',
                       quiet
                         ? on
-                          ? 'rounded-sm bg-foreground/[0.07] font-semibold text-foreground'
-                          : 'rounded-sm text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground'
+                          ? 'rounded-none bg-foreground/[0.07] font-semibold text-foreground'
+                          : 'rounded-none text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground'
                         : on
                           ? 'border-foreground/45 bg-card font-semibold text-foreground'
                           : 'border-border text-muted-foreground hover:text-foreground',
@@ -425,7 +425,7 @@ function PrimaryBtn({ children, onClick }: { children: React.ReactNode; onClick:
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-2 bg-primary px-4 py-[9px] text-[12px] font-semibold text-primary-foreground transition-opacity hover:opacity-85"
+      className="inline-flex items-center gap-2 bg-primary px-4 py-[9px] text-meta font-semibold text-primary-foreground transition-opacity hover:opacity-85"
     >
       {children}
     </button>
@@ -436,14 +436,14 @@ type CopyTarget = 'api-key' | 'install' | 'code' | 'creation' | 'execution'
 
 function QuickstartCode({ code, language }: { code: string; language: string }) {
   return (
-    <Suspense fallback={<pre className="overflow-auto whitespace-pre p-4 text-[11px] leading-relaxed">{code}</pre>}>
+    <Suspense fallback={<pre className="overflow-auto whitespace-pre p-4 text-label leading-relaxed">{code}</pre>}>
       <CodeBlock
         code={code}
         preserveWhitespace
         language={language}
         showCopy={false}
         className="w-full rounded-none border-0 bg-transparent shadow-none"
-        codeAreaClassName="max-h-[280px] overflow-auto rounded-none px-4 pb-4 pt-1 pr-4 text-[11px] leading-relaxed"
+        codeAreaClassName="max-h-[280px] overflow-auto rounded-none px-4 pb-4 pt-1 pr-4 text-label leading-relaxed"
       />
     </Suspense>
   )
@@ -498,9 +498,9 @@ function InlineCodeSteps({
         <section key={part.id} className="quickstart-step min-w-0">
           <QuickstartStepHeading title={part.title} />
           <p className="mt-2 max-w-[900px] font-display text-xs leading-relaxed text-muted-foreground">{part.note}</p>
-          <div className="mt-4 overflow-hidden rounded-sm bg-[hsl(var(--code-background))]">
+          <div className="mt-4 overflow-hidden rounded-none bg-[hsl(var(--code-background))]">
             <div className="flex items-center justify-between px-4 pb-1 pt-2">
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-label text-muted-foreground">
                 {EXAMPLE_FILES[language]} · {part.id === 'creation' ? 'part 1' : 'part 2'}
               </span>
               <QuickstartCopyButton
@@ -649,8 +649,8 @@ export function OnboardingGuideDialog({
               in your terminal to use an existing key.
             </p>
             {createdKey ? (
-              <div className="mt-4 flex items-start gap-3 rounded-sm bg-[hsl(var(--code-background))] p-3">
-                <code className="min-w-0 flex-1 break-all text-[11px] leading-relaxed">{createdKey.value}</code>
+              <div className="mt-4 flex items-start gap-3 rounded-none bg-[hsl(var(--code-background))] p-3">
+                <code className="min-w-0 flex-1 break-all text-label leading-relaxed">{createdKey.value}</code>
                 <QuickstartCopyButton
                   quiet
                   copied={copiedTarget === 'api-key'}
@@ -664,7 +664,7 @@ export function OnboardingGuideDialog({
                   value={keyName}
                   onChange={(event) => setKeyName(event.target.value)}
                   placeholder="Key name (optional)"
-                  className="min-w-0 flex-1 rounded-sm border border-border/60 bg-transparent px-3 py-2 font-display text-xs outline-none focus:border-brand"
+                  className="min-w-0 flex-1 rounded-none border border-border/60 bg-transparent px-3 py-2 font-display text-xs outline-none focus:border-brand"
                 />
                 <button
                   type="button"
@@ -694,7 +694,7 @@ export function OnboardingGuideDialog({
                   ? 'Use curl and jq to call the BoxLite REST API directly, without an SDK. The requests below create a Box and execute a command using your API key.'
                   : `Install the ${activeInterface.label} SDK in your local project to create Boxes, run commands and read results from your code. Run the installation command below in your terminal.`}
             </p>
-            <div className="mt-4 flex items-start gap-2 rounded-sm bg-[hsl(var(--code-background))] p-3">
+            <div className="mt-4 flex items-start gap-2 rounded-none bg-[hsl(var(--code-background))] p-3">
               <div className="min-w-0 flex-1">
                 <QuickstartCode code={activeExample.install} language="bash" />
               </div>
@@ -713,8 +713,8 @@ export function OnboardingGuideDialog({
             copiedTarget={copiedTarget}
             onCopy={copyText}
           />
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-sm bg-[hsl(var(--code-background))] px-4 py-3">
-            <pre className="min-w-0 overflow-x-auto whitespace-pre-wrap break-words text-[11px] leading-relaxed">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-none bg-[hsl(var(--code-background))] px-4 py-3">
+            <pre className="min-w-0 overflow-x-auto whitespace-pre-wrap break-words text-label leading-relaxed">
               ${' '}
               {language === 'cli'
                 ? 'bash quickstart.sh'
@@ -762,7 +762,7 @@ export function OnboardingGuideDialog({
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="text-[12px] text-muted-foreground hover:text-foreground"
+              className="text-meta text-muted-foreground hover:text-foreground"
             >
               Maybe later
             </button>
@@ -791,7 +791,7 @@ export function OnboardingGuideDialog({
                   <button type="button" onClick={() => setStep(i)} className="flex flex-none items-center gap-[9px]">
                     <span
                       className={cn(
-                        'flex size-6 flex-none items-center justify-center rounded-full border-[1.5px] text-[11px] font-bold transition-colors',
+                        'flex size-6 flex-none items-center justify-center rounded-full border-[1.5px] text-label font-bold transition-colors',
                         isDone
                           ? 'border-brand bg-brand text-white'
                           : active
@@ -804,7 +804,7 @@ export function OnboardingGuideDialog({
                     </span>
                     <span
                       className={cn(
-                        'hidden whitespace-nowrap text-[12px] sm:inline',
+                        'hidden whitespace-nowrap text-meta sm:inline',
                         active ? 'font-semibold text-foreground' : isDone ? 'text-foreground' : 'text-muted-foreground',
                       )}
                     >
@@ -861,13 +861,13 @@ export function OnboardingGuideDialog({
           >
             {step === 0 && (
               <div className="px-8 py-6" style={{ animation: 'stat-in .25s ease' }}>
-                <div className="mb-[9px] text-[9px] uppercase tracking-[1.5px] text-muted-foreground">
+                <div className="mb-[9px] text-label uppercase tracking-[1.5px] text-muted-foreground">
                   {createdKey ? 'Your API key' : 'Key name'}
                 </div>
                 <div className="flex items-center gap-[10px] border border-border bg-[hsl(var(--code-background))] px-[14px] py-3 focus-within:border-brand">
                   <KeyRound className={cn('size-4 flex-none', createdKey ? 'text-brand' : 'text-muted-foreground')} />
                   {createdKey ? (
-                    <span className="flex-1 break-all text-[11.5px] leading-relaxed text-foreground">
+                    <span className="flex-1 break-all text-meta leading-relaxed text-foreground">
                       {createdKey.value}
                     </span>
                   ) : (
@@ -882,7 +882,7 @@ export function OnboardingGuideDialog({
                       placeholder={`${DEFAULT_QUICKSTART_API_KEY_NAME} (default)`}
                       aria-label="Quickstart API key name"
                       disabled={creating}
-                      className="min-w-0 flex-1 bg-transparent text-[13px] tracking-[0.5px] text-foreground outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                      className="min-w-0 flex-1 bg-transparent text-body tracking-[0.5px] text-foreground outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
                     />
                   )}
                   {createdKey ? (
@@ -893,12 +893,12 @@ export function OnboardingGuideDialog({
                   ) : null}
                 </div>
                 {!createdKey && (
-                  <div className="mt-[9px] text-[11.5px] leading-relaxed text-muted-foreground">
+                  <div className="mt-[9px] text-meta leading-relaxed text-muted-foreground">
                     Leave blank to use <span className="text-foreground">{DEFAULT_QUICKSTART_API_KEY_NAME}</span>.
                   </div>
                 )}
                 {createdKey && (
-                  <div className="mt-[11px] flex items-start gap-2 text-[11.5px] leading-relaxed text-muted-foreground">
+                  <div className="mt-[11px] flex items-start gap-2 text-meta leading-relaxed text-muted-foreground">
                     <span className="flex-none text-brand">ⓘ</span>
                     <span>
                       Save this as <span className="text-foreground">BOXLITE_API_KEY</span> in your environment (e.g.{' '}
@@ -912,7 +912,7 @@ export function OnboardingGuideDialog({
                     <button
                       type="button"
                       onClick={handleCreateKey}
-                      className="text-[11px] text-muted-foreground hover:text-foreground"
+                      className="text-label text-muted-foreground hover:text-foreground"
                     >
                       ↻ Regenerate
                     </button>
@@ -932,12 +932,12 @@ export function OnboardingGuideDialog({
 
             {step === 1 && (
               <div className="px-8 py-6" style={{ animation: 'stat-in .25s ease' }}>
-                <div className="mb-[9px] text-[9px] uppercase tracking-[1.5px] text-muted-foreground">
+                <div className="mb-[9px] text-label uppercase tracking-[1.5px] text-muted-foreground">
                   {activeExample.setupLabel ?? 'Run in your local terminal'}
                 </div>
                 <div className="flex items-start gap-3 border border-border bg-[hsl(var(--code-background))] px-[14px] py-3">
                   <span className="flex-none pt-[1px] text-success">$</span>
-                  <pre className="scrollbar-elevated min-w-0 flex-1 overflow-x-auto whitespace-pre text-[13px] leading-relaxed text-foreground">
+                  <pre className="scrollbar-elevated min-w-0 flex-1 overflow-x-auto whitespace-pre text-body leading-relaxed text-foreground">
                     {activeExample.install}
                   </pre>
                   <QuickstartCopyButton
@@ -945,7 +945,7 @@ export function OnboardingGuideDialog({
                     onClick={() => void copyText(activeExample.install, 'install')}
                   />
                 </div>
-                <div className="mt-[11px] flex items-start gap-2 text-[11.5px] leading-relaxed text-muted-foreground">
+                <div className="mt-[11px] flex items-start gap-2 text-meta leading-relaxed text-muted-foreground">
                   <span className="flex-none text-brand">ⓘ</span>
                   <span>
                     {activeExample.setupDescription ?? (
@@ -969,7 +969,7 @@ export function OnboardingGuideDialog({
                 className={cn('flex min-h-0 flex-col px-8 py-6', preview ? 'h-auto sm:h-full' : 'h-full')}
                 style={{ animation: 'stat-in .25s ease' }}
               >
-                <div className="mb-[9px] text-[9px] uppercase tracking-[1.5px] text-muted-foreground">
+                <div className="mb-[9px] text-label uppercase tracking-[1.5px] text-muted-foreground">
                   {preview
                     ? `Save as ${EXAMPLE_FILES[language]} on your local machine`
                     : 'Run this from your local machine'}
@@ -977,7 +977,7 @@ export function OnboardingGuideDialog({
                 <div className={cn('relative min-h-0', preview ? 'h-[220px] flex-none sm:h-auto sm:flex-1' : 'flex-1')}>
                   <Suspense
                     fallback={
-                      <pre className="scrollbar-elevated h-full overflow-auto whitespace-pre rounded-none p-3 pr-24 text-[11.5px] leading-relaxed">
+                      <pre className="scrollbar-elevated h-full overflow-auto whitespace-pre rounded-none p-3 pr-24 text-meta leading-relaxed">
                         {renderedExample}
                       </pre>
                     }
@@ -987,7 +987,7 @@ export function OnboardingGuideDialog({
                       language={activeExample.codeLanguage}
                       showCopy={false}
                       className="h-full rounded-none"
-                      codeAreaClassName="h-full overflow-auto whitespace-pre pr-24 text-[11.5px] leading-relaxed"
+                      codeAreaClassName="h-full overflow-auto whitespace-pre pr-24 text-meta leading-relaxed"
                     />
                   </Suspense>
                   <QuickstartCopyButton
@@ -996,12 +996,12 @@ export function OnboardingGuideDialog({
                     className="absolute right-2 top-2.5"
                   />
                 </div>
-                <div className="mt-[12px] flex items-start gap-2 text-[11.5px] leading-relaxed text-muted-foreground">
+                <div className="mt-[12px] flex items-start gap-2 text-meta leading-relaxed text-muted-foreground">
                   <span className="flex-none text-brand">ⓘ</span>
                   <span>{activeExample.executionDescription}</span>
                 </div>
                 {preview && (
-                  <div className="mt-3 flex items-start gap-3 border border-border px-3 py-2 text-[11px]">
+                  <div className="mt-3 flex items-start gap-3 border border-border px-3 py-2 text-label">
                     <span className="pt-0.5 text-muted-foreground">$</span>
                     <pre className="min-w-0 flex-1 overflow-x-auto whitespace-pre-wrap break-words">
                       {language === 'cli'
@@ -1024,7 +1024,7 @@ export function OnboardingGuideDialog({
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="text-[12px] text-muted-foreground hover:text-foreground"
+              className="text-meta text-muted-foreground hover:text-foreground"
             >
               Maybe later
             </button>
@@ -1058,13 +1058,13 @@ export function OnboardingGuideDialog({
                 className="absolute left-1/2 top-[28%] w-full -translate-x-1/2 text-center"
                 style={{ animation: 'stat-in .4s ease' }}
               >
-                <div className="text-[10px] uppercase tracking-[4px] text-success">
+                <div className="text-label uppercase tracking-[4px] text-success">
                   ✓ {preview ? 'Walkthrough complete' : 'Mission complete'}
                 </div>
-                <div className="mt-[10px] text-[34px] font-bold tracking-[-1.5px]">
+                <div className="mt-[10px] text-page font-bold tracking-[-1.5px]">
                   {preview ? 'Ready to build.' : 'Box is live.'}
                 </div>
-                <div className="mt-[10px] text-[12.5px] text-muted-foreground">
+                <div className="mt-[10px] text-meta text-muted-foreground">
                   {preview
                     ? 'Continue in your terminal to create your first Box.'
                     : 'You shipped your first Box from code in three steps.'}

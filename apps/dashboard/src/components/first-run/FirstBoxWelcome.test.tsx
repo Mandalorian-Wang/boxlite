@@ -1,0 +1,115 @@
+// @vitest-environment jsdom
+import React, { act } from 'react'
+import { createRoot, type Root } from 'react-dom/client'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import FirstBoxWelcome from './FirstBoxWelcome'
+const api = vi.hoisted(() => ({ profile: vi.fn(), rename: vi.fn(), save: vi.fn(), credits: vi.fn(), refresh: vi.fn() }))
+vi.mock('@/hooks/useApi', () => ({
+  useApi: () => ({
+    getOrganizationOnboarding: api.profile,
+    saveOrganizationOnboarding: api.save,
+    organizationsApi: { updateOrganizationName: api.rename },
+    billingApi: { getSignupCreditDelivery: api.credits },
+  }),
+}))
+vi.mock('@/hooks/useSelectedOrganization', () => ({
+  useSelectedOrganization: () => ({ selectedOrganization: { id: 'org-1', name: 'Existing workspace' } }),
+}))
+vi.mock('@/hooks/useOrganizations', () => ({ useOrganizations: () => ({ refreshOrganizations: api.refresh }) }))
+vi.mock('@/hooks/useConfig', () => ({ useConfig: () => ({ billingApiUrl: 'https://billing.example.test' }) }))
+vi.mock('react-oidc-context', () => ({ useAuth: () => ({ user: { profile: { sub: 'user-1' } } }) }))
+vi.mock('./FirstBoxAtmosphere', () => ({
+  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}))
+let host: HTMLDivElement, root: Root, client: QueryClient
+beforeEach(() => {
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true
+  vi.resetAllMocks()
+  localStorage.clear()
+  api.profile.mockResolvedValue(null)
+  api.credits.mockResolvedValue({ delivered: true })
+  host = document.createElement('div')
+  document.body.append(host)
+  root = createRoot(host)
+  client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
+})
+afterEach(async () => {
+  await act(async () => root.unmount())
+  host.remove()
+  client.clear()
+  localStorage.clear()
+})
+async function settle() {
+  await act(async () => {
+    await new Promise((r) => setTimeout(r, 20))
+  })
+}
+async function mount() {
+  await act(async () =>
+    root.render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={['/welcome']}>
+          <Routes>
+            <Route path="/welcome" element={<FirstBoxWelcome />} />
+            <Route path="/dashboard/quickstart" element={<p>Quickstart destination</p>} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    ),
+  )
+  await settle()
+}
+async function click(text: string) {
+  const b = Array.from(host.querySelectorAll('button')).find((e) => e.textContent === text)!
+  await act(async () => b.click())
+  await settle()
+}
+async function input(id: string, value: string) {
+  const e = host.querySelector('#' + id)!
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(
+      e.tagName === 'INPUT' ? HTMLInputElement.prototype : HTMLTextAreaElement.prototype,
+      'value',
+    )!.set!.call(e, value)
+    e.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+}
+it('saves the name and selected intent before advancing after confirmed credit delivery', async () => {
+  await mount()
+  expect(host.textContent).toContain('Create your organization')
+  await input('welcome-organization', 'New team')
+  await click('Continue')
+  expect(api.rename).toHaveBeenCalledWith('org-1', { name: 'New team' })
+  expect(host.textContent).toContain('What are you building?')
+  await act(async () => host.querySelector<HTMLInputElement>('input[value="long-running-agent"]')!.click())
+  await input('welcome-note', 'Run an agent overnight')
+  await click('Start quickstart')
+  expect(api.save).toHaveBeenCalledWith('org-1', { useCase: 'long-running-agent', note: 'Run an agent overnight' })
+  expect(host.textContent).toContain('Quickstart destination')
+})
+it('restores saved intent, supports going back, and keeps failed submissions retryable', async () => {
+  api.profile.mockResolvedValue({ useCase: 'coding-agent', note: 'Saved note' })
+  await mount()
+  expect(host.querySelector<HTMLTextAreaElement>('#welcome-note')!.value).toBe('Saved note')
+  await click('Back')
+  expect(host.querySelector<HTMLInputElement>('#welcome-organization')!.value).toBe('Existing workspace')
+  await click('Continue')
+  await act(async () => host.querySelector<HTMLInputElement>('input[value="exploring"]')!.click())
+  api.save.mockRejectedValue(new Error('Try saving later'))
+  await click('Start quickstart')
+  expect(host.textContent).toContain('Try saving later')
+  expect(api.credits).not.toHaveBeenCalled()
+  api.save.mockResolvedValue({})
+  await click('Try again')
+  expect(host.textContent).toContain('Quickstart destination')
+})
+it('shows profile loading failures and reloads them without losing the page', async () => {
+  api.profile.mockRejectedValue(new Error('offline'))
+  await mount()
+  expect(host.textContent).toContain('Could not load your setup')
+  api.profile.mockResolvedValue(null)
+  await click('Try again')
+  expect(host.textContent).toContain('Create your organization')
+})

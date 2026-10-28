@@ -37,7 +37,7 @@ export function FirstBoxQuickstart() {
   return (
     <main className="mx-auto w-full max-w-[1440px] px-5 py-7 sm:px-10 lg:px-12">
       <div className="mb-7 flex items-center justify-between gap-4">
-        <h1 className="font-display text-[28px] font-semibold tracking-tight">Create your first Box</h1>
+        <h1 className="font-display text-page font-semibold tracking-tight">Create your first Box</h1>
       </div>
       <div className="grid w-full max-w-[1080px] gap-3 md:grid-cols-3" role="group" aria-label="Deployment method">
         {methods.map(({ id, title, description, Icon }) => (
@@ -47,12 +47,12 @@ export function FirstBoxQuickstart() {
             aria-label={title}
             aria-pressed={method === id}
             onClick={() => setMethod(id)}
-            className={`group flex items-center gap-3 rounded-sm px-4 py-3.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${method === id ? 'bg-accent' : 'bg-card hover:bg-accent'}`}
+            className={`group flex items-center gap-3 rounded-none px-4 py-3.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand ${method === id ? 'bg-accent' : 'bg-card hover:bg-accent'}`}
           >
             <Icon aria-hidden className="size-5 shrink-0 text-foreground/75" />
             <span className="min-w-0 flex-1">
-              <span className="block font-display text-[13px] font-semibold">{title}</span>
-              <span className="mt-1 block font-display text-[11px] leading-relaxed text-muted-foreground">
+              <span className="block font-display text-body font-semibold">{title}</span>
+              <span className="mt-1 block font-display text-label leading-relaxed text-muted-foreground">
                 {description}
               </span>
             </span>

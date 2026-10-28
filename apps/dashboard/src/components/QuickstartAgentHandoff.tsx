@@ -376,7 +376,7 @@ Verify that the credentials are valid and authorized for this task before execut
 
   if (permissionsKnown && !canCreateApiKey) {
     return (
-      <p className="px-8 py-8 text-[12.5px] leading-relaxed text-muted-foreground">
+      <p className="px-8 py-8 text-meta leading-relaxed text-muted-foreground">
         Your role cannot create API keys, so this path needs an organization owner to start it.
       </p>
     )
@@ -397,7 +397,7 @@ Verify that the credentials are valid and authorized for this task before execut
         <p className="mt-2 text-sm text-muted-foreground">
           Describe your app. Your coding agent will build and deploy it in a Box, with a public URL you can share.
         </p>
-        <div className="mt-5 rounded-sm bg-card p-4 focus-within:ring-1 focus-within:ring-brand/50 sm:p-5">
+        <div className="mt-5 rounded-none bg-card p-4 focus-within:ring-1 focus-within:ring-brand/50 sm:p-5">
           <textarea
             aria-label="Application request"
             placeholder="An app that…"
@@ -436,7 +436,7 @@ Verify that the credentials are valid and authorized for this task before execut
               type="button"
               disabled={!handoff || !draft.ready || !request.trim() || copying}
               onClick={() => void copy()}
-              className="rounded-sm bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-35"
+              className="rounded-none bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-35"
             >
               {copying ? 'Copying…' : handedOff ? 'Copy again' : 'Copy prompt'}
             </button>
@@ -491,7 +491,7 @@ Verify that the credentials are valid and authorized for this task before execut
         )}
         <details className="mt-6 text-sm text-muted-foreground">
           <summary className="w-fit cursor-pointer hover:text-foreground">View prompt</summary>
-          <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-sm bg-[hsl(var(--code-background))] p-4 font-mono text-xs leading-relaxed text-foreground">
+          <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-none bg-[hsl(var(--code-background))] p-4 font-mono text-xs leading-relaxed text-foreground">
             {handoff ? shownPrompt : 'Preparing your key…'}
           </pre>
         </details>
@@ -508,7 +508,7 @@ Verify that the credentials are valid and authorized for this task before execut
             credential the reader never asked for, at the moment they are
             trying to copy something. The key itself is visible in the prompt
             below; its scope and lifetime belong on the API Keys page. */}
-        <div className="min-w-0 truncate font-mono text-[10px] uppercase tracking-[1.5px] text-muted-foreground">
+        <div className="min-w-0 truncate font-mono text-label uppercase tracking-[1.5px] text-muted-foreground">
           <span className="text-brand">▸</span> Copy this prompt to your agent
         </div>
       </div>
@@ -516,10 +516,10 @@ Verify that the credentials are valid and authorized for this task before execut
       <div
         className={cn(
           'flex items-start gap-3 bg-[hsl(var(--code-background))] px-[14px] py-3',
-          composeRequest ? 'rounded-sm' : 'border border-border',
+          composeRequest ? 'rounded-none' : 'border border-border',
         )}
       >
-        <pre className="scrollbar-elevated min-w-0 flex-1 overflow-x-auto whitespace-pre-wrap break-words text-[12.5px] leading-[1.7] text-foreground">
+        <pre className="scrollbar-elevated min-w-0 flex-1 overflow-x-auto whitespace-pre-wrap break-words text-meta leading-[1.7] text-foreground">
           {handoff ? shownPrompt : 'Preparing your key…'}
         </pre>
         <QuickstartCopyButton
@@ -532,7 +532,7 @@ Verify that the credentials are valid and authorized for this task before execut
       </div>
 
       {(failed || permissionsTimedOut) && (
-        <div className="mt-3 text-[11.5px] leading-relaxed">
+        <div className="mt-3 text-meta leading-relaxed">
           <button type="button" onClick={retry} className="text-destructive underline underline-offset-2">
             {permissionsTimedOut && !failed ? 'Could not confirm your permissions.' : 'Could not create a key.'} Try
             again
@@ -543,13 +543,13 @@ Verify that the credentials are valid and authorized for this task before execut
       {/* The outcome, drawn before it exists. A ghost row says "a box will
           appear here" more plainly than a sentence about waiting does, and the
           same row then fills in, so nothing jumps when the agent delivers. */}
-      <div className="mt-6 font-mono text-[10px] uppercase tracking-[1.5px] text-muted-foreground">
+      <div className="mt-6 font-mono text-label uppercase tracking-[1.5px] text-muted-foreground">
         <span className="text-brand">▸</span> Your app
       </div>
       <div
         className={cn(
           'mt-2 flex items-center gap-3 px-4 py-3 transition-colors',
-          composeRequest ? 'rounded-sm bg-card' : 'border',
+          composeRequest ? 'rounded-none bg-card' : 'border',
           !composeRequest && (stage === 'live' ? 'border-brand bg-[hsl(var(--brand)/0.06)]' : 'border-border'),
         )}
         // Re-mount on each stage so the row arrives rather than flips.
@@ -567,14 +567,14 @@ Verify that the credentials are valid and authorized for this task before execut
               : { animation: `${stage === 'waiting' ? 'qs-pulse' : 'live-pulse'} 2s infinite` }
           }
         />
-        <div className="min-w-0 flex-1 font-mono text-[12.5px] leading-none">
+        <div className="min-w-0 flex-1 font-mono text-meta leading-none">
           {stage === 'waiting' ? (
             <span className="halftone-brand block h-[10px] w-[220px] max-w-full" aria-hidden />
           ) : (
             <span className="truncate text-foreground">{shownBox?.name ?? shownBox?.id}</span>
           )}
         </div>
-        <span className="flex-none text-[11px] text-muted-foreground">
+        <span className="flex-none text-label text-muted-foreground">
           {stage === 'waiting' && 'waiting for your agent'}
           {stage === 'building' && 'building…'}
           {stage === 'live' && shownBox && (

@@ -37,7 +37,7 @@ export function QuickstartRecipeHeader({
     ) : null
   return (
     <div className="shrink-0 px-6 pt-6 sm:px-8">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-2 pr-6 font-mono text-[10px] text-muted-foreground">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2 pr-6 font-mono text-label text-muted-foreground">
         <span className="uppercase tracking-[1.5px]">Quickstart</span>
       </div>
       <div
@@ -82,7 +82,7 @@ export function QuickstartRecipeHeader({
           : recipe.result}
       </p>
       {publishing && (
-        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[10px] text-muted-foreground">
+        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-label text-muted-foreground">
           {CODING_AGENT_MARKS.map(({ label, Mark }) => (
             <span key={label} className="inline-flex items-center gap-1.5">
               <Mark className="size-3.5" />

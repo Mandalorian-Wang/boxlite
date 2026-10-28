@@ -67,7 +67,7 @@ function WelcomeForm({ initial }: { initial: FirstRunWelcome }) {
     <FirstBoxAtmosphere>
       <main className="mx-auto w-full max-w-[620px] px-6 pb-12 pt-10 font-display sm:pt-16">
         <div
-          className="mb-8 flex items-center gap-3 font-mono text-[11px] text-muted-foreground"
+          className="mb-8 flex items-center gap-3 font-mono text-label text-muted-foreground"
           aria-label="Onboarding progress"
         >
           <span className={step === 'organization' ? 'text-foreground' : ''}>1 Organization</span>
@@ -134,7 +134,7 @@ function WelcomeForm({ initial }: { initial: FirstRunWelcome }) {
                         onChange={() => setUseCase(option.id)}
                         className="peer sr-only"
                       />
-                      <span className="flex min-h-[56px] items-center gap-3 rounded-md bg-foreground/[0.025] px-3.5 py-3 text-sm text-foreground/80 transition-colors duration-200 group-hover:bg-foreground/[0.055] peer-checked:bg-brand/[0.10] peer-checked:text-foreground peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring peer-disabled:cursor-wait">
+                      <span className="flex min-h-[56px] items-center gap-3 rounded-none bg-foreground/[0.025] px-3.5 py-3 text-sm text-foreground/80 transition-colors duration-200 group-hover:bg-foreground/[0.055] peer-checked:bg-brand/[0.10] peer-checked:text-foreground peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring peer-disabled:cursor-wait">
                         <Icon
                           aria-hidden
                           className={`size-4 shrink-0 transition-colors ${useCase === option.id ? 'text-brand' : 'text-muted-foreground group-hover:text-foreground'}`}
