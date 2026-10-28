@@ -107,6 +107,13 @@ fn test_run_exit_code_success() {
 3. In `src/main.rs`, add a branch in `run_cli` that calls the new command’s `execute`.
 4. Add tests in `boxlite-cli/tests/<command>.rs` and run `make test:integration:cli`.
 
+The nine agent commands use two subcommand levels (`agent wait`).
+`clap_complete` 4.6.3 emits their Fish options, but its second-level conditions
+match command names anywhere in the input. `generate_fish_completion` replaces
+those agent conditions with exact command-path checks so IDs, messages and option
+values cannot hide verbs or enable unrelated flags. The interpreter tests cover these cases;
+revisit the condition replacement when upgrading `clap_complete`.
+
 ## Command reference
 
 | Command        | Description |

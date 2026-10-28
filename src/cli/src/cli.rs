@@ -247,6 +247,25 @@ const SSH_SCOPES: &[CommandScope] = &[
         children: &[],
     },
 ];
+const fn box_command_scope(name: &'static str, children: &'static [CommandScope]) -> CommandScope {
+    CommandScope {
+        name,
+        globals: BOX_GLOBALS,
+        children,
+    }
+}
+
+const AGENT_SCOPES: &[CommandScope] = &[
+    box_command_scope("create", &[]),
+    box_command_scope("close", &[]),
+    box_command_scope("send", &[]),
+    box_command_scope("inspect", &[]),
+    box_command_scope("events", &[]),
+    box_command_scope("respond", &[]),
+    box_command_scope("wait", &[]),
+    box_command_scope("steer", &[]),
+    box_command_scope("interrupt", &[]),
+];
 const VOLUME_SCOPES: &[CommandScope] = &[
     CommandScope {
         name: "create",
@@ -270,6 +289,7 @@ const VOLUME_SCOPES: &[CommandScope] = &[
     },
 ];
 const COMMAND_SCOPES: &[CommandScope] = &[
+    box_command_scope("agent", AGENT_SCOPES),
     CommandScope {
         name: "run",
         globals: ALL_GLOBALS,
@@ -659,6 +679,9 @@ pub enum Commands {
     /// Configure, inspect, disable, or forward to guest SSH
     Ssh(crate::commands::ssh::SshArgs),
 
+    /// Agent instances and turns
+    Agent(crate::commands::agent::AgentArgs),
+
     /// Start a long-running REST API server
     Serve(crate::commands::serve::ServeArgs),
 
@@ -695,8 +718,62 @@ pub fn generate_completion(shell: &Shell, name: &str, out: &mut dyn Write) {
     match shell {
         Shell::Bash => clap_complete::generate(Bash, &mut cmd, name, out),
         Shell::Zsh => clap_complete::generate(Zsh, &mut cmd, name, out),
-        Shell::Fish => clap_complete::generate(Fish, &mut cmd, name, out),
+        Shell::Fish => generate_fish_completion(&mut cmd, name, out),
     }
+}
+
+fn generate_fish_completion(command: &mut Command, name: &str, out: &mut dyn Write) {
+    // Fish's second-level predicates match any token. Resolve the command path
+    // so option values, identifiers and messages cannot change command suggestions.
+    let escaped_name = name.replace('-', "_");
+    let path_helper = format!("__fish_{escaped_name}_agent_path");
+    writeln!(
+        out,
+        "function {path_helper}
+    set -l expected_path agent $argv
+    set -l tokens (commandline -opc)
+    set -e tokens[1]
+    for expected in $expected_path
+        argparse -s (__fish_{escaped_name}_global_optspecs) -- $tokens 2>/dev/null; or return 1
+        test (count $argv) -gt 0; or return 1
+        test \"$argv[1]\" = \"$expected\"; or return 1
+        set -e argv[1]
+        set tokens $argv
+    end
+    if test (count $expected_path) -eq 1
+        argparse -s (__fish_{escaped_name}_global_optspecs) -- $tokens 2>/dev/null; or return 1
+        test (count $argv) -eq 0; or return 1
+    end
+    return 0
+end"
+    )
+    .expect("write Fish command-path helper");
+    let mut generated = Vec::new();
+    clap_complete::generate(Fish, command, name, &mut generated);
+    let mut generated = String::from_utf8(generated).expect("generated completions are UTF-8");
+    let agent = command.find_subcommand("agent").expect("agent command");
+    let leaf_names = agent
+        .get_subcommands()
+        .map(Command::get_name)
+        .collect::<Vec<_>>()
+        .join(" ");
+    let parent_condition = format!(
+        "-n \"__fish_{escaped_name}_using_subcommand agent; and not __fish_seen_subcommand_from {leaf_names}\""
+    );
+    generated = generated.replace(&parent_condition, &format!("-n \"{path_helper}\""));
+    for leaf in agent
+        .get_subcommands()
+        .filter(|leaf| leaf.get_name() != "help")
+    {
+        let leaf = leaf.get_name();
+        let condition = format!(
+            "-n \"__fish_{escaped_name}_using_subcommand agent; and __fish_seen_subcommand_from {leaf}\""
+        );
+        let scoped = format!("-n \"{path_helper} {leaf}\"");
+        generated = generated.replace(&condition, &scoped);
+    }
+    out.write_all(generated.as_bytes())
+        .expect("write Fish completion");
 }
 
 fn completion_command() -> Command {

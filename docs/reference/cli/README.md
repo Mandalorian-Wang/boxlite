@@ -36,6 +36,7 @@ For a quick start, see [`src/cli/README.md`](../../../src/cli/README.md).
   - [`boxlite network tunnel`](#boxlite-network-tunnel)
   - [`boxlite network inbound / outbound`](#boxlite-network-inbound--outbound)
   - [`boxlite ssh`](#boxlite-ssh)
+  - [`boxlite agent`](#boxlite-agent)
   - [`boxlite serve`](#boxlite-serve)
   - [`boxlite volume`](#boxlite-volume)
   - [`boxlite completion`](#boxlite-completion)
@@ -809,6 +810,62 @@ the error says so; the configuration is not rolled back.
   route, so there `configure-and-forward` and `forward` fail after the SSH step.
 
 ---
+
+### `boxlite agent`
+
+Agent commands address a Box, an agent and, where needed, a turn. See the
+[failure contract](../agents.md#failure-contract) for operation availability.
+Unsupported operations report an error on stderr and exit with code 1 before
+runtime initialization. Malformed arguments use the normal CLI usage error (code 2).
+
+| Purpose | Command after `boxlite agent` | Operation |
+|---|---|---|
+| Lifecycle | `create BOX --agent IMPLEMENTATION` | Create an instance with the selected implementation and initial configuration. |
+| Lifecycle | `close BOX --agent AGENT` | End the agent. |
+| Work | `send BOX --agent AGENT TEXT` | Submit a new turn. |
+| Work | `wait BOX --agent AGENT --turn TURN` | Wait for an existing turn's result. |
+| Observe | `inspect BOX --agent AGENT [--turn TURN]` | Read agent or turn state. |
+| Observe | `events BOX --agent AGENT [--turn TURN]` | Follow agent or turn events. |
+| Interact | `steer BOX --agent AGENT --turn TURN TEXT` | Redirect that turn without submitting another. |
+| Interact | `interrupt BOX --agent AGENT --turn TURN` | Interrupt that turn's agent loop. |
+| Interact | `respond BOX --agent AGENT --request REQUEST JSON` | Answer a question or approve/deny a permission request. |
+
+`BOX` is positional, as in `boxlite exec`. Creation requires `--agent IMPLEMENTATION`.
+For example, `boxlite agent create dev --agent coder` selects implementation
+`coder` inside Box `dev`. Other commands use `--agent ID` for a created instance.
+Mutations never infer an active turn. `inspect --view config|capabilities|requests` selects an agent-only
+read and cannot be combined with `--turn`; omission reads state. The SDK's
+`get`/`get_turn` handle lookups are implicit in CLI targeting.
+
+The optional flags are grouped by operation:
+
+| Group | Commands | Flags |
+|---|---|---|
+| `AgentCreateOptions` | `create` | `--cwd PATH`, `--agent-config JSON`, `--idempotency-key KEY` |
+| `AgentSendOptions` | `send` | `--mode queue\|reject` (default `queue`), `--data JSON`, `--idempotency-key KEY` |
+| `AgentControlOptions` | close, respond, steer, interrupt | `--idempotency-key KEY` |
+| `AgentWaitOptions` | `wait` | `--timeout-seconds SECONDS` (nonnegative whole seconds; omitted means no deadline) |
+| `AgentEventsOptions` | `events` | `--after CURSOR` |
+| `AgentInspectOptions` | `inspect` | `--view config\|capabilities\|requests` |
+
+`--agent-config` is distinct from the global runtime `--config FILE`. Config,
+data and response arguments must be valid JSON. Response JSON uses either
+`{"type":"answer","text":"yes"}` (optional `data`) or
+`{"type":"permission","approved":false}`. The
+[agent API reference](../agents.md#inputs-and-records) describes other record fields.
+
+```bash
+boxlite agent create dev --agent coder --cwd /workspace --agent-config '{"model":"model-id"}'
+boxlite agent send dev --agent agent-id "Review this code" --mode reject
+boxlite agent inspect dev --agent agent-id --view requests
+boxlite agent steer dev --agent agent-id --turn turn-id "Focus on tests" --idempotency-key steer-1
+boxlite agent events dev --agent agent-id --turn turn-id --after cursor-1
+```
+
+Agent commands accept the usual Box
+targeting globals (`--home`, `--config`, `--url`, `--profile`, `--path-prefix`)
+and `--debug`; `--registry` is irrelevant and rejected. Existing diagnostic
+logging still applies.
 
 ### `boxlite serve`
 
