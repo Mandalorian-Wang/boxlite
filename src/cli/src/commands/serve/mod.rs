@@ -1299,6 +1299,9 @@ fn build_box_command(req: &ExecRequest) -> Result<BoxCommand, boxlite::BoxliteEr
     if req.tty {
         cmd = cmd.tty(true);
     }
+    if let Some(user) = &req.user {
+        cmd = cmd.user(user);
+    }
     if let Some(secs) = req.timeout_seconds {
         cmd = cmd.timeout_seconds(secs)?;
     }
@@ -2098,6 +2101,7 @@ mod tests {
                 timeout_seconds: Some(seconds),
                 working_dir: None,
                 tty: false,
+                user: None,
             };
 
             let err = build_box_command(&req).expect_err("invalid timeout should fail");
@@ -2106,6 +2110,28 @@ mod tests {
                 "unexpected error for {seconds:?}: {err}"
             );
         }
+    }
+
+    #[test]
+    fn build_box_command_forwards_user() {
+        let build = |user: Option<&str>| {
+            build_box_command(&ExecRequest {
+                command: "id".to_string(),
+                args: Vec::new(),
+                stdin: None,
+                env: None,
+                timeout_seconds: None,
+                working_dir: None,
+                tty: false,
+                user: user.map(str::to_string),
+            })
+            .expect("valid request")
+        };
+        // The per-exec user must survive the wire-to-command translation
+        // (#2116); blank strings normalize to the box default in the builder.
+        assert!(format!("{:?}", build(Some("1000:1000"))).contains(r#"user: Some("1000:1000")"#));
+        assert!(!format!("{:?}", build(None)).contains("user: Some"));
+        assert!(!format!("{:?}", build(Some("  "))).contains("user: Some"));
     }
 
     // ============================================================
