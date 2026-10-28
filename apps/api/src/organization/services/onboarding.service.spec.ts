@@ -59,6 +59,39 @@ describe('onboarding persistence', () => {
     )
   })
 
+  it('rejects profile reads and writes after an organization is removed', async () => {
+    query.mockResolvedValue([])
+    await expect(service.getOnboarding('missing')).rejects.toBeInstanceOf(NotFoundException)
+    await expect(service.saveOnboarding('missing', 'user', { useCase: 'exploring', note: '' })).rejects.toBeInstanceOf(
+      NotFoundException,
+    )
+  })
+
+  it.each([0, 3])('returns the persisted draft for revision %s', async (revision) => {
+    const row = { text: 'saved', revision: revision + 1, updatedAt: new Date() }
+    query.mockResolvedValueOnce(revision === 0 ? [row] : [[row], 1])
+    expect(await service.saveDraft('org', 'user', { text: 'saved', revision })).toEqual(row)
+    expect(query.mock.calls[0][1]).toEqual(
+      revision === 0 ? ['org', 'user', 'saved'] : ['org', 'user', 'saved', revision],
+    )
+    query.mockResolvedValueOnce([row])
+    expect(await service.getDraft('org', 'user')).toEqual(row)
+  })
+
+  it('rejects a handoff removed before it can be read', async () => {
+    query.mockResolvedValue([])
+    await expect(service.createHandoff('org', 'user', { requestId: 'request', text: 'app' })).rejects.toBeInstanceOf(
+      ConflictException,
+    )
+  })
+
+  it('returns the database copy timestamp for the current identity', async () => {
+    const row = { requestId: 'request', text: 'app', copiedAt: new Date() }
+    query.mockResolvedValue([[row], 1])
+    expect(await service.markCopied('org', 'user', 'request')).toEqual(row)
+    expect(query.mock.calls[0][1]).toEqual(['org', 'user', 'request'])
+  })
+
   const pipe = new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true })
   it.each([
     [SaveOnboardingDto, { useCase: 'data-jobs', note: '' }],

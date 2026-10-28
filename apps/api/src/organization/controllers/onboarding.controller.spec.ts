@@ -68,6 +68,30 @@ describe('onboarding route access', () => {
     expect(saveDraft).toHaveBeenCalledWith('org', 'authenticated', input)
   })
 
+  it('forwards reads and mutations using the authenticated organization and user', async () => {
+    const service = {
+      getOnboarding: jest.fn().mockResolvedValue(null),
+      saveOnboarding: jest.fn().mockResolvedValue({ useCase: 'exploring' }),
+      getDraft: jest.fn().mockResolvedValue({ text: 'draft', revision: 1 }),
+      createHandoff: jest.fn().mockResolvedValue({ requestId: 'request' }),
+      markCopied: jest.fn().mockResolvedValue({ copiedAt: 'now' }),
+    }
+    const controller = new OnboardingController(service as unknown as OnboardingService)
+    const auth = { userId: 'authenticated' } as AuthContext
+    expect(await controller.getOnboarding('org')).toBeNull()
+    expect(service.getOnboarding).toHaveBeenCalledWith('org')
+    const profile = { useCase: 'exploring' as const, note: '' }
+    expect(await controller.saveOnboarding('org', auth, profile)).toEqual({ useCase: 'exploring' })
+    expect(service.saveOnboarding).toHaveBeenCalledWith('org', 'authenticated', profile)
+    expect(await controller.getDraft('org', auth)).toEqual({ text: 'draft', revision: 1 })
+    expect(service.getDraft).toHaveBeenCalledWith('org', 'authenticated')
+    const input = { requestId: 'request', text: 'app' }
+    expect(await controller.createHandoff('org', auth, input)).toEqual({ requestId: 'request' })
+    expect(service.createHandoff).toHaveBeenCalledWith('org', 'authenticated', input)
+    expect(await controller.markCopied('org', auth, 'request')).toEqual({ copiedAt: 'now' })
+    expect(service.markCopied).toHaveBeenCalledWith('org', 'authenticated', 'request')
+  })
+
   it.each([
     [null, 'saveDraft', false],
     [OrganizationMemberRole.MEMBER, 'saveOnboarding', false],

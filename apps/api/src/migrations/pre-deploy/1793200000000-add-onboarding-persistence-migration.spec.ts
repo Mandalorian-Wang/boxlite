@@ -3,8 +3,12 @@ import { DataSource } from 'typeorm'
 import { AddOnboardingPersistence1793200000000 } from './1793200000000-add-onboarding-persistence-migration'
 import { OnboardingService } from '../../organization/services/onboarding.service'
 
-// Opt-in URL must point to a disposable local database. No application DB environment is used.
-const databaseUrl = process.env.ONBOARDING_TEST_DATABASE_URL
+// Local runs opt in explicitly. CI already provisions a disposable Postgres service;
+// only select its known loopback defaults, never a deployed application's database.
+const ciDatabase = process.env.CI && process.env.DB_HOST === 'localhost' && process.env.DB_DATABASE === 'boxlite'
+const databaseUrl =
+  process.env.ONBOARDING_TEST_DATABASE_URL ??
+  (ciDatabase ? 'postgres://postgres:postgres@localhost:5432/boxlite' : undefined)
 const integration = databaseUrl ? describe : describe.skip
 integration('onboarding persistence (real Postgres)', () => {
   const schema = `onboarding_${randomUUID().replaceAll('-', '')}`

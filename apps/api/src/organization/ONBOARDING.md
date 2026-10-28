@@ -55,3 +55,5 @@ unit tests also cover role restrictions, input limits, unknown fields and saniti
 Deploy the pre-deploy migration and API before the new Console. The Console saves
 onboarding before checking credit, restores each user's prompt draft, and acknowledges
 copying only after handing the assembled prompt to the clipboard.
+
+CI runs the onboarding migration integration suite against the API job’s existing disposable PostgreSQL service when its standard localhost/boxlite configuration is present. Local runs opt in with `ONBOARDING_TEST_DATABASE_URL`. Each run uses an isolated schema and removes it after testing; without either configuration, the suite is skipped.

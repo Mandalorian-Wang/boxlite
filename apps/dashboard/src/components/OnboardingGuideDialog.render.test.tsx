@@ -287,3 +287,202 @@ describe('OnboardingGuideDialog tabs', () => {
     expect(mocks.createApiKey).toHaveBeenCalledTimes(1)
   })
 })
+
+it('copies each SDK/CLI step with a named key and switches all supported interfaces', async () => {
+  const host = document.createElement('div')
+  document.body.append(host)
+  root = createRoot(host)
+  await act(async () =>
+    root!.render(
+      <OnboardingGuideDialog
+        inline
+        open
+        onOpenChange={() => {}}
+        onProgressChange={() => {}}
+        preview={{
+          inline: true,
+          recipe: quickstartRecipeFor('code-execution'),
+          onRecipeChange: () => {},
+          onConsole: () => {},
+          creditCents: 0,
+        }}
+      />,
+    ),
+  )
+  const name = document.querySelector('input[aria-label="Quickstart API key name"]')!
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(name, 'named-example')
+    name.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+  await click([...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === 'Create key'))
+  expect(mocks.createApiKey).toHaveBeenCalledWith(expect.objectContaining({ name: 'named-example' }), 'org-1')
+  for (const label of ['Python', 'Node', 'Go', 'Rust', 'C', 'CLI', 'REST']) {
+    await click(tabNamed(label))
+    const copies = [...document.querySelectorAll<HTMLButtonElement>('button')].filter(
+      (b) => b.textContent === 'Copy' || b.textContent === 'Copy full example',
+    )
+    expect(copies.length).toBeGreaterThanOrEqual(4)
+    for (const copy of copies) await click(copy)
+    expect(document.body.textContent).toContain('✓ Copied')
+  }
+  expect(mocks.copy).toHaveBeenCalledWith(expect.stringContaining('curl'))
+  expect(mocks.copy).toHaveBeenCalledWith('blk_live_theOnlyCopy')
+})
+
+it('finishes the staged walkthrough, supports back navigation and copies setup/code', async () => {
+  const host = document.createElement('div')
+  document.body.append(host)
+  root = createRoot(host)
+  const close = vi.fn(),
+    progress = vi.fn()
+  await act(async () =>
+    root!.render(
+      <OnboardingGuideDialog
+        open
+        onOpenChange={close}
+        onProgressChange={progress}
+        preview={{
+          recipe: quickstartRecipeFor('code-execution'),
+          onRecipeChange: () => {},
+          onConsole: () => {},
+          creditCents: 0,
+        }}
+      />,
+    ),
+  )
+  const button = (label: string) =>
+    [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.trim() === label)
+  const input = document.querySelector('input[aria-label="Quickstart API key name"]')!
+  await act(async () => input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })))
+  await click(button('Copy'))
+  await click(button('↻ Regenerate'))
+  await click(button('Copied · Next →'))
+  const select = document.querySelector<HTMLSelectElement>('select[aria-label="SDK or interface"]')!
+  await act(async () => {
+    select.value = 'rest'
+    select.dispatchEvent(new Event('change', { bubbles: true }))
+  })
+  await click(button('Copy'))
+  await click(button('Installed · Next →'))
+  await click(button('Copy'))
+  await click(button('Finish walkthrough'))
+  expect(progress).toHaveBeenCalled()
+  await click(button('Open Fleet →'))
+  expect(close).toHaveBeenCalledWith(false)
+})
+
+it('keeps the key form available after a failed creation and blocks roles without permission', async () => {
+  const host = document.createElement('div')
+  document.body.append(host)
+  root = createRoot(host)
+  mocks.createApiKey.mockRejectedValueOnce(new Error('server unavailable'))
+  const render = async () =>
+    act(async () =>
+      root!.render(
+        <OnboardingGuideDialog
+          inline
+          open
+          onOpenChange={() => {}}
+          onProgressChange={() => {}}
+          preview={{
+            inline: true,
+            recipe: quickstartRecipeFor('code-execution'),
+            onRecipeChange: () => {},
+            onConsole: () => {},
+            creditCents: 0,
+          }}
+        />,
+      ),
+    )
+  await render()
+  await click([...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === 'Create key'))
+  expect(document.querySelector('input[aria-label="Quickstart API key name"]')).not.toBeNull()
+  mocks.hasPermission.mockReturnValue(false)
+  await render()
+  expect(
+    [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === 'Create key')!.disabled,
+  ).toBe(true)
+  mocks.hasPermission.mockReturnValue(true)
+})
+
+it('retries a failed prompt save before copying and reuses the prepared handoff on copy again', async () => {
+  const host = document.createElement('div')
+  document.body.append(host)
+  root = createRoot(host)
+  mocks.listBoxes.mockResolvedValue({ data: { items: [] } })
+  await act(async () =>
+    root!.render(
+      <OnboardingGuideDialog
+        inline
+        open
+        onOpenChange={() => {}}
+        onProgressChange={() => {}}
+        preview={{
+          inline: true,
+          recipe: quickstartRecipeFor('application-deployments'),
+          onRecipeChange: () => {},
+          onConsole: () => {},
+          creditCents: 0,
+        }}
+      />,
+    ),
+  )
+  await flush()
+  const button = (label: string) =>
+    [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.trim() === label)
+  await click(button('Internal dashboard'))
+  mocks.saveDraft.mockRejectedValueOnce(new Error('offline'))
+  await click(button('Copy prompt'))
+  expect(document.body.textContent).toContain('Could not save')
+  expect(mocks.copy).not.toHaveBeenCalled()
+  await click(button('Retry'))
+  expect(document.body.textContent).not.toContain('Could not save. Your text')
+  mocks.handoff.mockRejectedValueOnce(new Error('offline'))
+  await click(button('Copy prompt'))
+  expect(document.querySelector('[role="alert"]')).not.toBeNull()
+  await click(button('Copy prompt'))
+  expect(document.body.textContent).toContain('Prompt copied.')
+  const preparedId = mocks.handoff.mock.calls.at(-1)![2]
+  const keysIssued = mocks.createApiKey.mock.calls.length
+  await click(button('Copy again'))
+  expect(mocks.handoff.mock.calls.at(-1)![2]).toBe(preparedId)
+  expect(mocks.createApiKey).toHaveBeenCalledTimes(keysIssued)
+})
+
+it.each(['code-execution', 'application-deployments'])(
+  'allows leaving the %s preview for later or the console',
+  async (recipe) => {
+    const host = document.createElement('div')
+    document.body.append(host)
+    root = createRoot(host)
+    const close = vi.fn(),
+      consoleAction = vi.fn(),
+      change = vi.fn()
+    await act(async () =>
+      root!.render(
+        <OnboardingGuideDialog
+          open
+          onOpenChange={close}
+          onProgressChange={() => {}}
+          preview={{
+            recipe: quickstartRecipeFor(recipe),
+            onRecipeChange: change,
+            onConsole: consoleAction,
+            creditCents: 0,
+          }}
+        />,
+      ),
+    )
+    await flush()
+    const button = (label: string) =>
+      [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.trim() === label)
+    await click(button('Maybe later'))
+    expect(close).toHaveBeenCalledWith(false)
+    await click(button('Try in console →'))
+    expect(consoleAction).toHaveBeenCalledTimes(1)
+    await click(button(recipe === 'code-execution' ? 'Run code' : 'Build an app'))
+    expect(change).not.toHaveBeenCalled()
+    await click(button(recipe === 'code-execution' ? 'Build an app' : 'Run code'))
+    expect(change).toHaveBeenCalledWith(recipe === 'code-execution' ? 'application-deployments' : 'code-execution')
+  },
+)
