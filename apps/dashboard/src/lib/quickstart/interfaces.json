@@ -56,7 +56,7 @@
     "label": "C",
     "group": "sdk",
     "icon": "file",
-    "install": "VERSION=v0.9.5\nPLATFORM=darwin-arm64\n# Linux: PLATFORM=linux-x64-gnu or linux-arm64-gnu\ncurl -fsSL \"https://github.com/boxlite-ai/boxlite/releases/download/${VERSION}/boxlite-c-${VERSION}-${PLATFORM}.tar.gz\" \\\n  | tar xz\nmv \"boxlite-c-${VERSION}-${PLATFORM}\" boxlite-c-sdk",
+    "install": "VERSION=v0.10.8\nPLATFORM=darwin-arm64\n# Linux: PLATFORM=linux-x64-gnu or linux-arm64-gnu\ncurl -fsSL \"https://github.com/boxlite-ai/boxlite/releases/download/${VERSION}/boxlite-c-${VERSION}-${PLATFORM}.tar.gz\" \\\n  | tar xz\nmv \"boxlite-c-${VERSION}-${PLATFORM}\" boxlite-c-sdk",
     "run": "cc main.c -Iboxlite-c-sdk/include -Lboxlite-c-sdk/lib -lboxlite -pthread \\\n  -Wl,-rpath,\"$PWD/boxlite-c-sdk/lib\" -o quickstart\nBOXLITE_API_KEY=$KEY BOXLITE_REST_URL={{REST_API_URL}} ./quickstart",
     "codeLanguage": "c",
     "setupLabel": "Download C SDK",

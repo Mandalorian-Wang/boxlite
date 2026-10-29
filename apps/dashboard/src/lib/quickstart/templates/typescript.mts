@@ -21,7 +21,7 @@ const box = await rt.create(
 )
 await box.start()
 
-const exec = await box.exec('echo', ['Hello from BoxLite SDK'])
+const exec = await box.exec({{COMMAND_LITERAL}}, [{{ARGUMENT_LITERALS}}])
 const stdout = await exec.stdout()
 let output = ''
 let chunk: string | null

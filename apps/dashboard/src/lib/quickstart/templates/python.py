@@ -24,7 +24,7 @@ async def main():
     )
     await box.start()
 
-    execution = await box.exec("echo", args=["Hello from BoxLite SDK"])
+    execution = await box.exec({{COMMAND_LITERAL}}, args=[{{ARGUMENT_LITERALS}}])
     output = ""
     async for line in execution.stdout():
         output += line

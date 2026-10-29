@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     box_handle.start().await?;
 
     let mut exec = box_handle
-        .exec(BoxCommand::new("echo").arg("Hello from BoxLite SDK"))
+        .exec(BoxCommand::new({{COMMAND_LITERAL}}){{RUST_ARGUMENTS}})
         .await?;
     let mut stdout = exec.stdout().expect("stdout stream should be available");
     let mut output = String::new();
