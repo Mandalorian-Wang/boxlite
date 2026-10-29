@@ -88,3 +88,21 @@ Templates live in `src/lib/quickstart/templates`. Explicit step markers delimit
 creation, execution and preview. Keep the Box and server running after the
 local program exits. Dev acceptance tests should check the public page after
 process exit, then remove only their own test resources independently.
+
+#### Preview walkthrough screenshots
+
+These captures use local fixtures without a real API key. Select **Deploy from
+SDK / CLI**, choose a language, then scroll to **Create a preview**. Copy the
+complete example and run it locally; open the printed URL in a browser.
+
+Before, the command example deleted its Box immediately:
+
+![Previous command-only flow](docs/quickstart-preview/before.png)
+
+The updated guide preserves the language selector and introduces three code parts:
+
+![SDK Quickstart overview](docs/quickstart-preview/after-overview.png)
+
+The final part prints a public URL and leaves the Box running:
+
+![Create a preview](docs/quickstart-preview/after-preview.png)
