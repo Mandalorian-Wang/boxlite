@@ -17,7 +17,7 @@
 export interface PromptHandoffDto {
     'requestId': string;
     'text': string;
-    'createdAt': Date;
-    'copiedAt': Date | null;
+    'createdAt': string;
+    'copiedAt': string | null;
 }
 

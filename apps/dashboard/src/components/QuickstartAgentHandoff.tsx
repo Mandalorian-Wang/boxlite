@@ -90,6 +90,8 @@ function QuickstartAgentHandoffContent({
 }) {
   const [copiedRequest, setCopiedRequest] = useState<string | null>(null)
   const [copying, setCopying] = useState(false)
+  const [preparedRequest, setPreparedRequest] = useState<string | null>(null)
+  const [confirmationFailed, setConfirmationFailed] = useState(false)
   const api = useApi()
   const { apiKeyApi, boxApi } = api
   const { selectedOrganization, organizationMembers, refreshOrganizationMembers, authenticatedUserHasPermission } =
@@ -324,31 +326,51 @@ Verify that the credentials are valid and authorized for this task before execut
   // screen share or a screenshot of this dialog does not leak a credential.
   const shownPrompt = handoff ? buildPrompt(maskKey(handoff.keyValue)) : ''
 
-  const copy = useCallback(async () => {
-    if (!handoff || (composeRequest && !request.trim())) return
-    setCopying(true)
+  const confirmCopy = async () => {
     try {
-      if (composeRequest) {
-        await draft.flush()
-        if (!submission.current || submission.current.text !== request)
-          submission.current = { text: request, id: crypto.randomUUID() }
-        await api.preparePromptHandoff(orgId!, request, submission.current.id)
-      }
-      const success = await copyToClipboard(buildPrompt(handoff.keyValue))
-      if (!success) {
-        setCopied('failed')
-        return
-      }
-      if (composeRequest) await api.markPromptCopied(orgId!, submission.current!.id)
-      setCopied('done')
-      setCopiedRequest(`${identity}:${request}`)
-      if (!composeRequest) setTimeout(() => setCopied(null), 1600)
+      await api.markPromptCopied(orgId!, submission.current!.id)
+      setConfirmationFailed(false)
+    } catch {
+      setConfirmationFailed(true)
+    }
+  }
+
+  const prepare = async () => {
+    if (!handoff || !request.trim()) return
+    setCopying(true)
+    setCopied(null)
+    try {
+      await draft.flush()
+      if (!submission.current || submission.current.text !== request)
+        submission.current = { text: request, id: crypto.randomUUID() }
+      await api.preparePromptHandoff(orgId!, request, submission.current.id)
+      setPreparedRequest(request)
     } catch {
       setCopied('failed')
     } finally {
       setCopying(false)
     }
-  }, [api, orgId, draft, buildPrompt, handoff, composeRequest, request, identity])
+  }
+
+  const copy = async () => {
+    if (!handoff || (composeRequest && preparedRequest !== request)) return
+    setCopying(true)
+    try {
+      // Invoke the clipboard during this click; network preparation was completed
+      // by the previous gesture, so Safari/Firefox retain user activation.
+      const success = await copyToClipboard(buildPrompt(handoff.keyValue))
+      if (!success) {
+        setCopied('failed')
+        return
+      }
+      setCopied('done')
+      setCopiedRequest(`${identity}:${request}`)
+      if (composeRequest) await confirmCopy()
+      else setTimeout(() => setCopied(null), 1600)
+    } finally {
+      setCopying(false)
+    }
+  }
 
   // Three stages, one row each, and nothing else moves: the card is the only
   // thing on this screen that changes after the copy, so it is where the eye
@@ -405,6 +427,8 @@ Verify that the credentials are valid and authorized for this task before execut
             onChange={(event) => {
               setRequest(event.target.value)
               setCopiedRequest(null)
+              setPreparedRequest(null)
+              setConfirmationFailed(false)
               setCopied(null)
             }}
             maxLength={16000}
@@ -435,10 +459,18 @@ Verify that the credentials are valid and authorized for this task before execut
             <button
               type="button"
               disabled={!handoff || !draft.ready || !request.trim() || copying}
-              onClick={() => void copy()}
+              onClick={() => void (preparedRequest === request ? copy() : prepare())}
               className="rounded-none bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-35"
             >
-              {copying ? 'Copying…' : handedOff ? 'Copy again' : 'Copy prompt'}
+              {copying
+                ? preparedRequest === request
+                  ? 'Copying…'
+                  : 'Preparing…'
+                : preparedRequest !== request
+                  ? 'Prepare prompt'
+                  : handedOff
+                    ? 'Copy again'
+                    : 'Copy prompt'}
             </button>
           </div>
         </div>
@@ -455,6 +487,8 @@ Verify that the credentials are valid and authorized for this task before execut
               onClick={() => {
                 setRequest(value)
                 setCopiedRequest(null)
+                setPreparedRequest(null)
+                setConfirmationFailed(false)
                 setCopied(null)
               }}
               className="underline decoration-muted-foreground/30 underline-offset-4 hover:text-foreground focus-visible:outline-brand"
@@ -479,6 +513,14 @@ Verify that the credentials are valid and authorized for this task before execut
         {copied === 'failed' && (
           <p role="alert" className="mt-4 text-sm text-destructive">
             Could not save or copy the prompt. Your text is still here. Try again.
+          </p>
+        )}
+        {confirmationFailed && (
+          <p role="status" className="mt-4 text-sm text-muted-foreground">
+            Prompt copied, but confirmation could not be saved.{' '}
+            <button type="button" className="underline" onClick={() => void confirmCopy()}>
+              Retry confirmation
+            </button>
           </p>
         )}
         {handedOff && (

@@ -9,10 +9,12 @@ import {
   Patch,
   Post,
   Put,
+  Res,
   UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common'
+import type { Response } from 'express'
 import { AuthGuard } from '@nestjs/passport'
 import { ApiBearerAuth, ApiExtraModels, ApiOkResponse, ApiOperation, ApiTags, getSchemaPath } from '@nestjs/swagger'
 import { AuthContext } from '../../common/decorators/auth-context.decorator'
@@ -50,8 +52,8 @@ export class OnboardingController {
   @Get('onboarding')
   @ApiOperation({ operationId: 'getOrganizationOnboarding', summary: 'Read organization onboarding answers' })
   @ApiOkResponse({ schema: { nullable: true, allOf: [{ $ref: getSchemaPath(OnboardingDto) }] } })
-  getOnboarding(@Param('organizationId') org: string) {
-    return this.service.getOnboarding(org)
+  async getOnboarding(@Param('organizationId') org: string, @Res() response: Response) {
+    response.json(await this.service.getOnboarding(org))
   }
 
   @Put('onboarding')
@@ -69,8 +71,8 @@ export class OnboardingController {
   @Get('quickstart/prompt')
   @ApiOperation({ operationId: 'getQuickstartPrompt', summary: 'Read your prompt draft in this organization' })
   @ApiOkResponse({ schema: { nullable: true, allOf: [{ $ref: getSchemaPath(PromptDraftDto) }] } })
-  getDraft(@Param('organizationId') org: string, @AuthContext() auth: UserContext) {
-    return this.service.getDraft(org, auth.userId)
+  async getDraft(@Param('organizationId') org: string, @AuthContext() auth: UserContext, @Res() response: Response) {
+    response.json(await this.service.getDraft(org, auth.userId))
   }
 
   @Put('quickstart/prompt')

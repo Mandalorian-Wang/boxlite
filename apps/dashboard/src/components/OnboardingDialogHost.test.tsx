@@ -21,7 +21,9 @@ it('routes the shared guide event to Quickstart and releases its listener on unm
     ),
   )
   expect(host.textContent).toBe('Boxes')
-  await act(async () => window.dispatchEvent(new Event(ONBOARDING_OPEN_EVENT)))
+  const event = new Event(ONBOARDING_OPEN_EVENT, { cancelable: true })
+  await act(async () => window.dispatchEvent(event))
+  expect(event.defaultPrevented).toBe(true)
   expect(host.textContent).toBe('Dedicated Quickstart')
   await act(async () => root.unmount())
   expect(() => window.dispatchEvent(new Event(ONBOARDING_OPEN_EVENT))).not.toThrow()

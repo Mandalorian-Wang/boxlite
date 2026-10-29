@@ -18,7 +18,7 @@ export interface OnboardingDto {
     'useCase': OnboardingDtoUseCaseEnum;
     'note': string;
     'submittedBy': string;
-    'submittedAt': Date;
+    'submittedAt': string;
 }
 
 export const OnboardingDtoUseCaseEnum = {

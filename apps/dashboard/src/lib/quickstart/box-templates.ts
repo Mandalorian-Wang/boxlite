@@ -284,7 +284,9 @@ export const BOX_TEMPLATES: BoxTemplate[] = [
     cpu: 2,
     memoryGiB: 2,
     access: 'SQL · PostgreSQL + pgvector',
-    preparation: 'Set POSTGRES_PASSWORD before starting PostgreSQL.',
+    requiredEnv: { key: 'POSTGRES_PASSWORD', label: 'PostgreSQL password' },
+    preparation:
+      'A password is generated in the Box’s POSTGRES_PASSWORD environment variable. Use it to connect to PostgreSQL.',
   },
   {
     id: 'valkey',

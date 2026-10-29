@@ -117,7 +117,7 @@ export function ImageCatalog() {
     navigate(`${RoutePath.QUICKSTART}?method=console&template=${encodeURIComponent(id)}`)
 
   const handleRemove = async (image: Image & { templateId?: string }) => {
-    if (image.curated || image.templateId) return
+    if (image.curated || !image.id) return
     const key = imageRouteKey(image)
     setPendingRemove(null)
     try {
@@ -276,7 +276,7 @@ export function ImageCatalog() {
                     New box
                   </button>
                 )}
-                {canDelete && !image.curated && !image.templateId && (
+                {canDelete && !image.curated && image.id && (
                   <button
                     type="button"
                     onClick={() => setPendingRemove(image)}

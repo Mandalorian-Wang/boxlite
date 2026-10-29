@@ -11,6 +11,7 @@ import { OnboardingGuideDialog } from './OnboardingGuideDialog'
 import { quickstartRecipeFor } from '@/lib/quickstart/recipes'
 
 const mocks = vi.hoisted(() => ({
+  orgId: 'org-1',
   saveDraft: vi.fn(async (_org, text, revision) => ({ text, revision: revision + 1 })),
   handoff: vi.fn(async () => ({})),
   markCopied: vi.fn(async () => ({})),
@@ -37,7 +38,7 @@ vi.mock('@/hooks/useConfig', () => ({
 }))
 vi.mock('@/hooks/useSelectedOrganization', () => ({
   useSelectedOrganization: () => ({
-    selectedOrganization: { id: 'org-1', name: 'Org' },
+    selectedOrganization: { id: mocks.orgId, name: 'Org' },
     organizationMembers: [{ id: 'member-1' }],
     refreshOrganizationMembers: vi.fn(),
     authenticatedUserHasPermission: mocks.hasPermission,
@@ -76,6 +77,7 @@ async function click(el: HTMLElement | undefined) {
 
 beforeEach(() => {
   vi.useFakeTimers()
+  mocks.orgId = 'org-1'
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
   mocks.listBoxes.mockReset()
   sessionStorage.clear()
@@ -148,7 +150,7 @@ describe('OnboardingGuideDialog tabs', () => {
     expect(document.querySelector('details')?.open).toBe(false)
     expect(
       [...document.querySelectorAll<HTMLButtonElement>('button')].find((item) =>
-        item.textContent?.includes('Copy prompt'),
+        item.textContent?.includes('Prepare prompt'),
       )?.disabled,
     ).toBe(true)
     const agents = document.querySelector('[aria-label="Local coding agents"]')!
@@ -166,6 +168,9 @@ describe('OnboardingGuideDialog tabs', () => {
     expect(document.querySelector('pre')?.textContent).toContain('Application request: Build an inventory dashboard.')
     expect(document.querySelector('pre')?.textContent).not.toContain('blk_live_theOnlyCopy')
     expect(document.body.textContent).not.toContain('waiting for your agent')
+    await click(
+      [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === 'Prepare prompt'),
+    )
     const copyButton = [...document.querySelectorAll<HTMLButtonElement>('button')].find(
       (item) => item.textContent?.trim() === 'Copy prompt',
     )
@@ -183,6 +188,9 @@ describe('OnboardingGuideDialog tabs', () => {
       ),
     )
     expect(document.body.textContent).not.toContain('Prompt copied. Continue in your coding agent.')
+    await click(
+      [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === 'Prepare prompt'),
+    )
     mocks.copy.mockResolvedValueOnce(false)
     await click(
       [...document.querySelectorAll<HTMLButtonElement>('button')].find(
@@ -437,14 +445,15 @@ it('retries a failed prompt save before copying and reuses the prepared handoff 
     [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.trim() === label)
   await click(button('Internal dashboard'))
   mocks.saveDraft.mockRejectedValueOnce(new Error('offline'))
-  await click(button('Copy prompt'))
+  await click(button('Prepare prompt'))
   expect(document.body.textContent).toContain('Could not save')
   expect(mocks.copy).not.toHaveBeenCalled()
   await click(button('Retry'))
   expect(document.body.textContent).not.toContain('Could not save. Your text')
   mocks.handoff.mockRejectedValueOnce(new Error('offline'))
-  await click(button('Copy prompt'))
+  await click(button('Prepare prompt'))
   expect(document.querySelector('[role="alert"]')).not.toBeNull()
+  await click(button('Prepare prompt'))
   await click(button('Copy prompt'))
   expect(document.body.textContent).toContain('Prompt copied.')
   const preparedId = mocks.handoff.mock.calls.at(-1)![2]
@@ -491,3 +500,95 @@ it.each(['code-execution', 'application-deployments'])(
     expect(change).toHaveBeenCalledWith(recipe === 'code-execution' ? 'application-deployments' : 'code-execution')
   },
 )
+
+it('isolates SDK keys across organizations including late key responses', async () => {
+  const host = document.createElement('div')
+  document.body.append(host)
+  root = createRoot(host)
+  const render = async () =>
+    act(async () =>
+      root!.render(
+        <OnboardingGuideDialog
+          inline
+          open
+          onOpenChange={() => {}}
+          onProgressChange={() => {}}
+          preview={{
+            inline: true,
+            recipe: quickstartRecipeFor('code-execution'),
+            onRecipeChange: () => {},
+            onConsole: () => {},
+            creditCents: 0,
+          }}
+        />,
+      ),
+    )
+  const create = () =>
+    [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === 'Create key')
+  await render()
+  await click(create())
+  expect(document.body.textContent).toContain('blk_live_theOnlyCopy')
+  mocks.orgId = 'org-2'
+  await render()
+  expect(document.body.textContent).not.toContain('blk_live_theOnlyCopy')
+  let resolve!: (value: unknown) => void
+  mocks.createApiKey.mockImplementationOnce(
+    () =>
+      new Promise((r) => {
+        resolve = r
+      }),
+  )
+  await click(create())
+  mocks.orgId = 'org-3'
+  await render()
+  await act(async () => resolve({ data: { value: 'blk_late_other_org' } }))
+  expect(document.body.textContent).not.toContain('blk_late_other_org')
+  expect(create()).toBeDefined()
+})
+
+it('prepares a persisted handoff before a fresh copy gesture and reports acknowledgement failures separately', async () => {
+  const host = document.createElement('div')
+  document.body.append(host)
+  root = createRoot(host)
+  mocks.listBoxes.mockResolvedValue({ data: { items: [] } })
+  await act(async () =>
+    root!.render(
+      <OnboardingGuideDialog
+        inline
+        open
+        onOpenChange={() => {}}
+        onProgressChange={() => {}}
+        preview={{
+          inline: true,
+          recipe: quickstartRecipeFor('application-deployments'),
+          onRecipeChange: () => {},
+          onConsole: () => {},
+          creditCents: 0,
+        }}
+      />,
+    ),
+  )
+  await flush()
+  const button = (label: string) =>
+    [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.trim() === label)
+  await click(button('Personal website'))
+  await click(button('Prepare prompt'))
+  expect(mocks.handoff).toHaveBeenCalled()
+  expect(mocks.copy).not.toHaveBeenCalled()
+  expect(button('Copy prompt')).toBeDefined()
+  mocks.markCopied.mockRejectedValueOnce(new Error('ack offline'))
+  let synchronousCopy = false
+  mocks.copy.mockImplementationOnce(async () => {
+    synchronousCopy = true
+    return true
+  })
+  await act(async () => {
+    button('Copy prompt')!.click()
+    expect(synchronousCopy).toBe(true)
+  })
+  expect(document.body.textContent).toContain('Prompt copied.')
+  expect(document.body.textContent).not.toContain('Could not save or copy')
+  expect(button('Retry confirmation')).toBeDefined()
+  await click(button('Retry confirmation'))
+  expect(button('Retry confirmation')).toBeUndefined()
+})

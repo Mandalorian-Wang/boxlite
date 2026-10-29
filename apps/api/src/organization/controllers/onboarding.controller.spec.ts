@@ -1,4 +1,5 @@
 import 'reflect-metadata'
+import axios from 'axios'
 import { Test } from '@nestjs/testing'
 import { AuthGuard } from '@nestjs/passport'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
@@ -46,6 +47,14 @@ describe('onboarding route access', () => {
       expect(read.operationId).toBe('getOrganizationOnboarding')
       expect((read.responses['200'] as any).content['application/json'].schema.nullable).toBe(true)
       expect(doc.components?.schemas?.CreatePromptHandoffDto).toBeDefined()
+      expect((doc.components?.schemas?.SavePromptDraftDto as any).properties.revision).toMatchObject({
+        type: 'integer',
+        maximum: 2147483646,
+      })
+      expect((doc.components?.schemas?.PromptDraftDto as any).properties.revision).toMatchObject({
+        type: 'integer',
+        maximum: 2147483647,
+      })
     } finally {
       await app.close()
     }
@@ -78,12 +87,15 @@ describe('onboarding route access', () => {
     }
     const controller = new OnboardingController(service as unknown as OnboardingService)
     const auth = { userId: 'authenticated' } as AuthContext
-    expect(await controller.getOnboarding('org')).toBeNull()
+    const response = { json: jest.fn() }
+    await controller.getOnboarding('org', response as any)
+    expect(response.json).toHaveBeenCalledWith(null)
     expect(service.getOnboarding).toHaveBeenCalledWith('org')
     const profile = { useCase: 'exploring' as const, note: '' }
     expect(await controller.saveOnboarding('org', auth, profile)).toEqual({ useCase: 'exploring' })
     expect(service.saveOnboarding).toHaveBeenCalledWith('org', 'authenticated', profile)
-    expect(await controller.getDraft('org', auth)).toEqual({ text: 'draft', revision: 1 })
+    await controller.getDraft('org', auth, response as any)
+    expect(response.json).toHaveBeenCalledWith({ text: 'draft', revision: 1 })
     expect(service.getDraft).toHaveBeenCalledWith('org', 'authenticated')
     const input = { requestId: 'request', text: 'app' }
     expect(await controller.createHandoff('org', auth, input)).toEqual({ requestId: 'request' })
@@ -113,4 +125,39 @@ describe('onboarding route access', () => {
     } as unknown as ExecutionContext
     expect(await guard.canActivate(context)).toBe(allowed)
   })
+})
+
+it('serializes missing onboarding reads as JSON null through Nest HTTP and Axios', async () => {
+  const module = await Test.createTestingModule({
+    controllers: [OnboardingController],
+    providers: [
+      {
+        provide: OnboardingService,
+        useValue: { getDraft: jest.fn().mockResolvedValue(null), getOnboarding: jest.fn().mockResolvedValue(null) },
+      },
+    ],
+  })
+    .overrideGuard(AuthGuard('jwt'))
+    .useValue({
+      canActivate: (context) => {
+        context.switchToHttp().getRequest().user = { userId: 'user' }
+        return true
+      },
+    })
+    .overrideGuard(OrganizationActionGuard)
+    .useValue({ canActivate: () => true })
+    .overrideGuard(AuthenticatedRateLimitGuard)
+    .useValue({ canActivate: () => true })
+    .compile()
+  const app = module.createNestApplication()
+  try {
+    await app.listen(0, '127.0.0.1')
+    for (const path of ['onboarding', 'quickstart/prompt']) {
+      const result = await axios.get(`${await app.getUrl()}/organizations/org/${path}`, { proxy: false })
+      expect(result.data).toBeNull()
+      expect(result.headers['content-type']).toContain('application/json')
+    }
+  } finally {
+    await app.close()
+  }
 })

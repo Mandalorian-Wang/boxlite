@@ -156,7 +156,7 @@ describe('the image list', () => {
     expect(buttonWithTitle('Remove quay.io/acme/app')).toBeTruthy()
   })
 
-  it.each([false, true])('does not offer removal for a pulled template (extra tag: %s)', async (extraTag) => {
+  it.each([false, true])('allows removal of an owned image matching a template (extra tag: %s)', async (extraTag) => {
     const template = BOX_TEMPLATES[0]
     const name = catalogNameOf(template.image)
     const tag = template.image.slice(template.image.lastIndexOf(':') + 1)
@@ -166,7 +166,10 @@ describe('the image list', () => {
     ]
     await renderCatalog()
 
-    expect(buttonWithTitle(`Remove ${name}`)).toBeUndefined()
+    expect(buttonWithTitle(`Remove ${name}`)).toBeDefined()
+    await act(async () => buttonWithTitle(`Remove ${name}`)!.click())
+    await act(async () => confirmButton()!.click())
+    expect(mocks.deleteImage).toHaveBeenCalledWith({ idOrRef: 'img-template', organizationId: 'org-1' })
     expect(buttonWithTitle('Remove quay.io/acme/app')).toBeTruthy()
   })
 

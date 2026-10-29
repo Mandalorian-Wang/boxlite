@@ -10,6 +10,7 @@ import { useSelectedOrganization } from '@/hooks/useSelectedOrganization'
 import { useWelcomeOnboarding } from '@/hooks/useWelcomeOnboarding'
 import { RoutePath } from '@/enums/RoutePath'
 import { FIRST_RUN_USE_CASES, type FirstRunWelcome, type FirstRunUseCase } from '@/lib/first-run'
+import { getLocalStorageItem } from '@/lib/local-storage'
 import FirstBoxAtmosphere from './FirstBoxAtmosphere'
 
 const USE_CASE_ICONS = {
@@ -39,8 +40,15 @@ export default function FirstBoxWelcome() {
       </p>
     )
   if (!selectedOrganization || profile.isPending) return <p className="p-8">Loading your workspace…</p>
+  let organizationSaved = false
+  try {
+    const progress = JSON.parse(getLocalStorageItem(`boxlite:welcome:${user?.profile.sub}:${orgId}`) ?? 'null')
+    organizationSaved = typeof progress?.organizationName === 'string' && !!progress.organizationName.trim()
+  } catch {
+    /* Invalid browser progress must not block first-time setup. */
+  }
   const initial: FirstRunWelcome = {
-    organizationName: profile.data ? selectedOrganization.name : '',
+    organizationName: profile.data || organizationSaved ? selectedOrganization.name : '',
     useCase: profile.data?.useCase ?? null,
     note: profile.data?.note ?? '',
     creditGrantedAt: null,
@@ -49,7 +57,7 @@ export default function FirstBoxWelcome() {
 }
 
 function WelcomeForm({ initial }: { initial: FirstRunWelcome }) {
-  const { welcome, action } = useWelcomeOnboarding(initial)
+  const { welcome, action, billingEnabled } = useWelcomeOnboarding(initial)
   const [step, setStep] = useState<'organization' | 'intent'>(welcome.organizationName ? 'intent' : 'organization')
   const [name, setName] = useState(welcome.organizationName)
   const [useCase, setUseCase] = useState<FirstRunUseCase | null>(welcome.useCase)
@@ -61,7 +69,8 @@ function WelcomeForm({ initial }: { initial: FirstRunWelcome }) {
       : 'Could not save. Please try again.'
     : null
 
-  if (welcome.creditGrantedAt !== null) return <Navigate to={RoutePath.QUICKSTART} replace />
+  if (welcome.completedAt != null || welcome.creditGrantedAt !== null)
+    return <Navigate to={RoutePath.QUICKSTART} replace />
 
   return (
     <FirstBoxAtmosphere>
@@ -203,12 +212,29 @@ function WelcomeForm({ initial }: { initial: FirstRunWelcome }) {
                 className="h-10 min-w-[120px] border border-transparent px-6 font-display text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:border-border disabled:bg-card disabled:text-muted-foreground disabled:opacity-100"
                 disabled={!useCase || action.isPending}
               >
-                {action.isPending ? 'Waiting for credits…' : action.isError ? 'Try again' : 'Start quickstart'}
+                {action.isPending
+                  ? billingEnabled
+                    ? 'Waiting for credits…'
+                    : 'Saving…'
+                  : action.isError
+                    ? 'Try again'
+                    : 'Start quickstart'}
               </AsciiButton>
             </div>
-            <p className="mt-3 text-right text-xs text-muted-foreground">
-              We’ll check your signup credits before opening Quickstart.
-            </p>
+            {billingEnabled && (
+              <p className="mt-3 text-right text-xs text-muted-foreground">
+                We’ll check your signup credits before opening Quickstart.
+              </p>
+            )}
+            {billingEnabled && action.isError && useCase && (
+              <button
+                type="button"
+                className="mt-3 text-sm underline"
+                onClick={() => action.mutate({ type: 'intent', useCase, note, skipCredit: true })}
+              >
+                Continue without credits
+              </button>
+            )}
           </form>
         )}
         {error && (

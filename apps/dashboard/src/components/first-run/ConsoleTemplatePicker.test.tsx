@@ -77,6 +77,7 @@ it('keeps the selection and exposes errors when creation fails', async () => {
   state.isError = true
   await mount()
   await click('Create Box')
+  expect(state.create).toHaveBeenCalledTimes(1)
   expect(state.navigate).not.toHaveBeenCalled()
   expect(host.querySelector('[role="alert"]')?.textContent).toContain('Could not complete')
   expect(host.querySelector('[aria-label="Select Python"]')).not.toBeNull()
@@ -86,4 +87,13 @@ it('creates browser templates without asking the user for a token', async () => 
   await mount('/?template=browserless')
   await click('Create Box')
   expect(state.create).toHaveBeenCalledWith(expect.objectContaining({ envVars: { TOKEN: expect.any(String) } }))
+})
+
+it('initializes pgvector with a generated PostgreSQL password', async () => {
+  state.create.mockResolvedValue({ id: 'db-1' })
+  await mount('/?template=pgvector')
+  await click('Create Box')
+  expect(state.create).toHaveBeenCalledWith(
+    expect.objectContaining({ envVars: { POSTGRES_PASSWORD: expect.stringMatching(/.{16,}/) } }),
+  )
 })

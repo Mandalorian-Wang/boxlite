@@ -8,7 +8,10 @@ import { ONBOARDING_OPEN_EVENT } from '@/lib/onboarding-progress'
 export function OnboardingDialogHost() {
   const navigate = useNavigate()
   useEffect(() => {
-    const open = () => navigate(RoutePath.QUICKSTART)
+    const open = (event: Event) => {
+      event.preventDefault()
+      navigate(RoutePath.QUICKSTART)
+    }
     window.addEventListener(ONBOARDING_OPEN_EVENT, open)
     return () => window.removeEventListener(ONBOARDING_OPEN_EVENT, open)
   }, [navigate])

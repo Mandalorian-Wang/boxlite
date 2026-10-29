@@ -4,7 +4,13 @@ import { createRoot, type Root } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { useWelcomeOnboarding } from './useWelcomeOnboarding'
-const api = vi.hoisted(() => ({ rename: vi.fn(), refresh: vi.fn(), delivery: vi.fn(), save: vi.fn() }))
+const api = vi.hoisted(() => ({
+  rename: vi.fn(),
+  refresh: vi.fn(),
+  delivery: vi.fn(),
+  save: vi.fn(),
+  billingApiUrl: 'https://billing.example.test',
+}))
 vi.mock('./useApi', () => ({
   useApi: () => ({
     saveOrganizationOnboarding: api.save,
@@ -16,7 +22,7 @@ vi.mock('./useOrganizations', () => ({ useOrganizations: () => ({ refreshOrganiz
 vi.mock('./useSelectedOrganization', () => ({
   useSelectedOrganization: () => ({ selectedOrganization: { id: 'org-1' } }),
 }))
-vi.mock('./useConfig', () => ({ useConfig: () => ({ billingApiUrl: 'https://billing.example.test' }) }))
+vi.mock('./useConfig', () => ({ useConfig: () => ({ billingApiUrl: api.billingApiUrl }) }))
 vi.mock('react-oidc-context', () => ({ useAuth: () => ({ user: { profile: { sub: 'user-1' } } }) }))
 let current: ReturnType<typeof useWelcomeOnboarding>
 let root: Root
@@ -28,6 +34,7 @@ function Harness() {
 beforeEach(async () => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
   vi.resetAllMocks()
+  api.billingApiUrl = 'https://billing.example.test'
   client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
   root = createRoot(document.createElement('div'))
   await act(async () =>
@@ -104,4 +111,39 @@ it('saves the selected scenario before polling and does not poll when saving fai
   })
   expect(api.save).toHaveBeenCalledWith('org-1', { useCase: 'long-running-agent', note: 'always on' })
   expect(api.delivery).not.toHaveBeenCalled()
+})
+
+it('finishes without inventing credit delivery when billing is disabled', async () => {
+  api.billingApiUrl = ''
+  await act(async () =>
+    root.render(
+      <QueryClientProvider client={client}>
+        <Harness />
+      </QueryClientProvider>,
+    ),
+  )
+  await act(async () => current.action.mutateAsync({ type: 'intent', useCase: 'exploring', note: '' }))
+  expect(api.delivery).not.toHaveBeenCalled()
+  expect(current.welcome.creditGrantedAt).toBeNull()
+  expect(current.welcome.completedAt).toEqual(expect.any(Number))
+  expect(localStorage.getItem('SkipOnboarding_user-1')).toBe('true')
+})
+it('does not dismiss unfinished setup on the organization step', async () => {
+  await act(async () => current.action.mutateAsync({ type: 'organization', name: 'New name' }))
+  expect(localStorage.getItem('SkipOnboarding_user-1')).toBeNull()
+})
+
+it('allows an explicit exit after undelivered credits without recording a grant', async () => {
+  api.delivery.mockRejectedValueOnce(new Error('not delivered'))
+  await act(async () => {
+    await expect(current.action.mutateAsync({ type: 'intent', useCase: 'exploring', note: '' })).rejects.toThrow(
+      'not delivered',
+    )
+  })
+  await act(async () =>
+    current.action.mutateAsync({ type: 'intent', useCase: 'exploring', note: '', skipCredit: true }),
+  )
+  expect(api.delivery).toHaveBeenCalledTimes(1)
+  expect(current.welcome.completedAt).toEqual(expect.any(Number))
+  expect(current.welcome.creditGrantedAt).toBeNull()
 })

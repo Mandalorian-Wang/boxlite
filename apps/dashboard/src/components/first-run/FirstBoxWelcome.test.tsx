@@ -5,7 +5,14 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import FirstBoxWelcome from './FirstBoxWelcome'
-const api = vi.hoisted(() => ({ profile: vi.fn(), rename: vi.fn(), save: vi.fn(), credits: vi.fn(), refresh: vi.fn() }))
+const api = vi.hoisted(() => ({
+  profile: vi.fn(),
+  rename: vi.fn(),
+  save: vi.fn(),
+  credits: vi.fn(),
+  refresh: vi.fn(),
+  billingApiUrl: 'https://billing.example.test',
+}))
 vi.mock('@/hooks/useApi', () => ({
   useApi: () => ({
     getOrganizationOnboarding: api.profile,
@@ -18,7 +25,7 @@ vi.mock('@/hooks/useSelectedOrganization', () => ({
   useSelectedOrganization: () => ({ selectedOrganization: { id: 'org-1', name: 'Existing workspace' } }),
 }))
 vi.mock('@/hooks/useOrganizations', () => ({ useOrganizations: () => ({ refreshOrganizations: api.refresh }) }))
-vi.mock('@/hooks/useConfig', () => ({ useConfig: () => ({ billingApiUrl: 'https://billing.example.test' }) }))
+vi.mock('@/hooks/useConfig', () => ({ useConfig: () => ({ billingApiUrl: api.billingApiUrl }) }))
 vi.mock('react-oidc-context', () => ({ useAuth: () => ({ user: { profile: { sub: 'user-1' } } }) }))
 vi.mock('./FirstBoxAtmosphere', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -27,6 +34,7 @@ let host: HTMLDivElement, root: Root, client: QueryClient
 beforeEach(() => {
   globalThis.IS_REACT_ACT_ENVIRONMENT = true
   vi.resetAllMocks()
+  api.billingApiUrl = 'https://billing.example.test'
   localStorage.clear()
   api.profile.mockResolvedValue(null)
   api.credits.mockResolvedValue({ delivered: true })
@@ -112,4 +120,32 @@ it('shows profile loading failures and reloads them without losing the page', as
   api.profile.mockResolvedValue(null)
   await click('Try again')
   expect(host.textContent).toContain('Create your organization')
+})
+
+it('restores the confirmed organization step after reloading before intent submission', async () => {
+  localStorage.setItem('boxlite:welcome:user-1:org-1', JSON.stringify({ organizationName: 'Existing workspace' }))
+  await mount()
+  expect(host.textContent).toContain('What are you building?')
+  await click('Back')
+  expect(host.querySelector<HTMLInputElement>('#welcome-organization')!.value).toBe('Existing workspace')
+})
+
+it('opens Quickstart without billing or a fabricated credit grant', async () => {
+  api.billingApiUrl = ''
+  api.profile.mockResolvedValue({ useCase: 'exploring', note: '' })
+  await mount()
+  expect(host.textContent).not.toContain('signup credits')
+  await click('Start quickstart')
+  expect(host.textContent).toContain('Quickstart destination')
+  expect(api.credits).not.toHaveBeenCalled()
+})
+it('offers an explicit exit when configured billing cannot deliver credits', async () => {
+  api.profile.mockResolvedValue({ useCase: 'exploring', note: '' })
+  api.credits.mockRejectedValue(new Error('Credits unavailable'))
+  await mount()
+  await click('Start quickstart')
+  expect(host.textContent).toContain('Credits unavailable')
+  await click('Continue without credits')
+  expect(host.textContent).toContain('Quickstart destination')
+  expect(api.credits).toHaveBeenCalledTimes(1)
 })

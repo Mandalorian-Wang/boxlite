@@ -79,19 +79,24 @@ integration('onboarding persistence (real Postgres)', () => {
   })
 
   it('deduplicates simultaneous handoffs and acknowledges copying independently', async () => {
+    await service.saveDraft(org, 'handoff-user', { text: '', revision: 0 })
     const input = { requestId: randomUUID(), text: 'build my app' }
-    const results = await Promise.all(Array.from({ length: 5 }, () => service.createHandoff(org, 'alice', input)))
+    const results = await Promise.all(
+      Array.from({ length: 5 }, () => service.createHandoff(org, 'handoff-user', input)),
+    )
     expect(results.every((r) => r.createdAt.getTime() === results[0].createdAt.getTime())).toBe(true)
     expect(results[0].copiedAt).toBeNull()
     const [{ count }] = await db.query('SELECT count(*) FROM quickstart_prompt_handoff')
     expect(Number(count)).toBe(1)
-    await expect(service.createHandoff(org, 'alice', { ...input, text: 'different' })).rejects.toThrow('different text')
-    await expect(service.markCopied(otherOrg, 'alice', input.requestId)).rejects.toThrow('not found')
+    await expect(service.createHandoff(org, 'handoff-user', { ...input, text: 'different' })).rejects.toThrow(
+      'different text',
+    )
+    await expect(service.markCopied(otherOrg, 'handoff-user', input.requestId)).rejects.toThrow('not found')
     await expect(service.markCopied(org, 'bob', input.requestId)).rejects.toThrow('not found')
-    const copied = await service.markCopied(org, 'alice', input.requestId)
+    const copied = await service.markCopied(org, 'handoff-user', input.requestId)
     expect(copied.copiedAt).not.toBeNull()
-    expect((await service.markCopied(org, 'alice', input.requestId)).copiedAt).toEqual(copied.copiedAt)
-    expect((await service.getDraft(org, 'alice'))?.text).toBe('')
+    expect((await service.markCopied(org, 'handoff-user', input.requestId)).copiedAt).toEqual(copied.copiedAt)
+    expect((await service.getDraft(org, 'handoff-user'))?.text).toBe('')
   })
 
   it('cascades organization deletion and rolls the migration back and forward', async () => {

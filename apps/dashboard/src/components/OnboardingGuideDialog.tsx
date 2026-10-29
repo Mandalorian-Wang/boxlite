@@ -517,7 +517,13 @@ function InlineCodeSteps({
   )
 }
 
-export function OnboardingGuideDialog({
+export function OnboardingGuideDialog(props: OnboardingGuideDialogProps) {
+  const { selectedOrganization } = useSelectedOrganization()
+  const userId = useAuth().user?.profile.sub
+  return <OnboardingGuideContent key={`${userId}:${selectedOrganization?.id}`} {...props} />
+}
+
+function OnboardingGuideContent({
   open,
   onOpenChange,
   onProgressChange,

@@ -39,7 +39,7 @@ import {
 import { useSelectedOrganization } from '@/hooks/useSelectedOrganization'
 import { createBulkActionToast } from '@/lib/bulk-action-toast'
 import { handleApiError } from '@/lib/error-handling'
-import { getLocalStorageItem, setLocalStorageItem } from '@/lib/local-storage'
+import { getLocalStorageItem } from '@/lib/local-storage'
 import {
   mergeOnboardingProgress,
   ONBOARDING_PROGRESS_EVENT,
@@ -683,7 +683,6 @@ const Boxes: React.FC = () => {
         hasBoxes: (totalBoxesQuery.data ?? 0) > 0,
       })
     ) {
-      setLocalStorageItem(skipOnboardingKey, 'true')
       navigate(requestedByUrl ? RoutePath.QUICKSTART : RoutePath.WELCOME, { replace: true })
     }
   }, [

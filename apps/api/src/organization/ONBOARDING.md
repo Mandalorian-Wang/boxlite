@@ -57,3 +57,5 @@ onboarding before checking credit, restores each user's prompt draft, and acknow
 copying only after handing the assembled prompt to the clipboard.
 
 CI runs the onboarding migration integration suite against the API job’s existing disposable PostgreSQL service when its standard localhost/boxlite configuration is present. Local runs opt in with `ONBOARDING_TEST_DATABASE_URL`. Each run uses an isolated schema and removes it after testing; without either configuration, the suite is skipped.
+
+Nullable onboarding reads explicitly serialize JSON `null`, including for new users without prompt drafts. Revision schemas use bounded `int32` values (request maximum 2147483646, response maximum 2147483647). Generated TypeScript onboarding timestamp properties are ISO strings, matching Axios response data; their OpenAPI wire format remains `date-time`.

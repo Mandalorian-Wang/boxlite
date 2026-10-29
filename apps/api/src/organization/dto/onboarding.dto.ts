@@ -37,7 +37,13 @@ export class SavePromptDraftDto {
   @MaxLength(16000)
   text: string
 
-  @ApiProperty({ minimum: 0, description: 'Last read revision; 0 creates a new draft.' })
+  @ApiProperty({
+    type: 'integer',
+    format: 'int32',
+    minimum: 0,
+    maximum: 2147483646,
+    description: 'Last read revision; 0 creates a new draft.',
+  })
   @IsInt()
   @Min(0)
   @Max(2147483646)
@@ -57,6 +63,9 @@ export class CreatePromptHandoffDto {
 }
 
 export class PromptDraftDto extends SavePromptDraftDto {
+  @ApiProperty({ type: 'integer', format: 'int32', minimum: 0, maximum: 2147483647 })
+  declare revision: number
+
   @ApiProperty({ format: 'date-time' })
   updatedAt: Date
 }

@@ -58,4 +58,5 @@ export interface FirstRunWelcome {
   useCase: FirstRunUseCase | null
   note: string
   creditGrantedAt: number | null
+  completedAt?: number | null
 }

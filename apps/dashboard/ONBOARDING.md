@@ -28,13 +28,13 @@ checks, production build and UI walkthrough. Document observed results before pu
 ## User flow and deployment
 
 1. A new account names its organization using the existing organization-name endpoint.
-2. Choose a use case and optionally describe it. Continue saves this answer on the organization, then polls signup-credit delivery with bounded backoff. Failures remain visible and can be retried.
+2. Choose a use case and optionally describe it. Continue saves this answer on the organization, then polls signup-credit delivery with bounded backoff. Failures remain visible and can be retried, or the user can explicitly continue without credits. Installations without billing finish without polling; setup completion never implies a credit grant. The browser skip flag is written only on completion, and a confirmed organization rename survives a reload before intent submission.
 3. Quickstart offers SDK/CLI, console templates, or a prompt for a local coding agent. Console creation uses the selected public image, resource defaults and startup command. Existing Boxes empty-state content remains unchanged.
-4. Prompt text autosaves after one second and on blur, scoped to the organization and user. Refresh restores saved text. Copy first saves a handoff snapshot; credentials are added only in the browser, never persisted in the snapshot. Copied status does not mean an application was deployed.
+4. Prompt text autosaves after one second and on blur, scoped to the organization and user. Refresh restores saved text. Prepare prompt saves a handoff snapshot; the following Copy prompt click writes directly to the clipboard without waiting on network requests. Editing the request requires preparation again. A failed copy acknowledgement can be retried separately from a successful copy; credentials are added only in the browser, never persisted in the snapshot. Copied status does not mean an application was deployed.
 
 Apply the additive API migration before releasing the dashboard. The organization use case and per-user draft endpoints must be deployed together with this UI. See [API persistence contract](../api/src/organization/ONBOARDING.md) for authorization, validation, revision conflicts and retention.
 
-Public templates share their catalog with Images. Template rows are not removable from the catalog; user-imported images retain their existing lifecycle. Public registry availability and runner architecture can change; this PR does not guarantee every future upstream tag remains available.
+Public templates share their catalog with Images. Virtual and curated template rows are not removable from the catalog; an organization-owned image remains removable even if its reference matches a template; user-imported images retain their existing lifecycle. Public registry availability and runner architecture can change; this PR does not guarantee every future upstream tag remains available.
 
 ## UI comparison
 
@@ -59,3 +59,5 @@ Targeted dashboard tests cover routing, credit backoff, template rows, generated
 The browser walkthrough used MSW fixtures. The integrated signup flow has not been deployed or accepted against the production API; complete that check after migration and backend deployment. Terminal auto-connect is included as a behavior change; a full-revert regression demonstration was not run for it.
 
 The dashboard CI suite also checks the shared typography and square-corner design rules. Onboarding uses the named type-scale tokens. Interaction tests exercise name/intent submission, save retries, template creation and deployment-method switching; canvas tests cover reduced motion, viewport suspension and cleanup. Regenerate both cloud API clients whenever the onboarding DTOs or controller change, using the repository's pinned OpenAPI generator.
+
+SDK guide state is keyed by authenticated user and organization. Switching either clears the displayed credential and isolates late key-creation responses. PostgreSQL + pgvector uses an automatically generated `POSTGRES_PASSWORD`, available in the Box environment.

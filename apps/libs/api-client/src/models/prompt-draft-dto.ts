@@ -20,6 +20,6 @@ export interface PromptDraftDto {
      * Last read revision; 0 creates a new draft.
      */
     'revision': number;
-    'updatedAt': Date;
+    'updatedAt': string;
 }
 

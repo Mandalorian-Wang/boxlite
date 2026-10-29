@@ -24,7 +24,7 @@ var _ MappedNullable = &PromptDraftDto{}
 type PromptDraftDto struct {
 	Text string `json:"text"`
 	// Last read revision; 0 creates a new draft.
-	Revision float32 `json:"revision"`
+	Revision int32 `json:"revision"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	AdditionalProperties map[string]interface{}
 }
@@ -35,7 +35,7 @@ type _PromptDraftDto PromptDraftDto
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewPromptDraftDto(text string, revision float32, updatedAt time.Time) *PromptDraftDto {
+func NewPromptDraftDto(text string, revision int32, updatedAt time.Time) *PromptDraftDto {
 	this := PromptDraftDto{}
 	this.Text = text
 	this.Revision = revision
@@ -76,9 +76,9 @@ func (o *PromptDraftDto) SetText(v string) {
 }
 
 // GetRevision returns the Revision field value
-func (o *PromptDraftDto) GetRevision() float32 {
+func (o *PromptDraftDto) GetRevision() int32 {
 	if o == nil {
-		var ret float32
+		var ret int32
 		return ret
 	}
 
@@ -87,7 +87,7 @@ func (o *PromptDraftDto) GetRevision() float32 {
 
 // GetRevisionOk returns a tuple with the Revision field value
 // and a boolean to check if the value has been set.
-func (o *PromptDraftDto) GetRevisionOk() (*float32, bool) {
+func (o *PromptDraftDto) GetRevisionOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -95,7 +95,7 @@ func (o *PromptDraftDto) GetRevisionOk() (*float32, bool) {
 }
 
 // SetRevision sets field value
-func (o *PromptDraftDto) SetRevision(v float32) {
+func (o *PromptDraftDto) SetRevision(v int32) {
 	o.Revision = v
 }
 
