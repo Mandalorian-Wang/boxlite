@@ -149,3 +149,19 @@ it('offers an explicit exit when configured billing cannot deliver credits', asy
   expect(host.textContent).toContain('Quickstart destination')
   expect(api.credits).toHaveBeenCalledTimes(1)
 })
+
+it('restores completion after continuing without credits instead of repeating setup', async () => {
+  localStorage.setItem(
+    'boxlite:welcome:user-1:org-1',
+    JSON.stringify({
+      organizationName: 'Existing workspace',
+      completedAt: 1793200000000,
+      creditGrantedAt: null,
+    }),
+  )
+  api.profile.mockResolvedValue({ useCase: 'exploring', note: '' })
+  await mount()
+  expect(host.textContent).toContain('Quickstart destination')
+  expect(api.save).not.toHaveBeenCalled()
+  expect(api.credits).not.toHaveBeenCalled()
+})

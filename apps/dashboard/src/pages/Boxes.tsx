@@ -677,6 +677,7 @@ const Boxes: React.FC = () => {
     if (
       shouldAutoOpenOnboarding({
         requestedByUrl,
+        canCompleteWelcome: authenticatedUserOrganizationMember?.role === OrganizationUserRoleEnum.OWNER,
         dismissedInThisBrowser: getLocalStorageItem(skipOnboardingKey) === 'true',
         accountStateLoaded: apiKeysQuery.isSuccess && totalBoxesQuery.isSuccess,
         hasApiKeys: (apiKeysQuery.data?.length ?? 0) > 0,
@@ -689,6 +690,7 @@ const Boxes: React.FC = () => {
     navigate,
     apiKeysQuery.data,
     apiKeysQuery.isSuccess,
+    authenticatedUserOrganizationMember?.role,
     searchParams,
     selectedOrganization,
     totalBoxesQuery.data,

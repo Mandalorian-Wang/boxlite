@@ -8,12 +8,14 @@ import { act, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import Boxes from './Boxes'
+import { OrganizationUserRoleEnum } from '@boxlite-ai/api-client'
 
 const navigate = vi.hoisted(() => vi.fn())
 // Each test decides what the account holds.
 const state = vi.hoisted(() => ({
   items: [] as Array<Record<string, unknown>> | undefined,
   total: 0,
+  role: 'owner',
   // The first render, before the list query has answered.
   pending: false,
   // The two account-state queries do not resolve together.
@@ -62,6 +64,7 @@ vi.mock('@/components/ui/dropdown-menu', () => {
 vi.mock('@/hooks/useSelectedOrganization', () => ({
   useSelectedOrganization: () => ({
     selectedOrganization: { id: 'org-1' },
+    authenticatedUserOrganizationMember: { role: state.role },
     authenticatedUserHasPermission: () => true,
   }),
 }))
@@ -141,6 +144,7 @@ describe('Boxes page, empty account', () => {
   beforeEach(() => {
     state.items = []
     state.total = 0
+    state.role = OrganizationUserRoleEnum.OWNER
     state.pending = false
     state.boxCountPending = false
     // Most cases are about the empty state itself, so start from a browser that
@@ -235,6 +239,14 @@ describe('Boxes page, empty account', () => {
 
     expect(onboardingIsOpen()).toBeUndefined()
     expect(navigate).not.toHaveBeenCalled()
+  })
+
+  it('keeps non-owner members on Boxes even in a new empty organization', () => {
+    localStorage.clear()
+    state.role = 'member'
+    render()
+    expect(navigate).not.toHaveBeenCalled()
+    expect(document.querySelector('h1')?.textContent).toBe('Boxes')
   })
 
   it('opens welcome first for a new account with no keys and no boxes', () => {

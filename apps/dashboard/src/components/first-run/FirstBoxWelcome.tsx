@@ -41,8 +41,11 @@ export default function FirstBoxWelcome() {
     )
   if (!selectedOrganization || profile.isPending) return <p className="p-8">Loading your workspace…</p>
   let organizationSaved = false
+  let completedAt: number | null = null
   try {
     const progress = JSON.parse(getLocalStorageItem(`boxlite:welcome:${user?.profile.sub}:${orgId}`) ?? 'null')
+    if (typeof progress?.completedAt === 'number' && Number.isFinite(progress.completedAt) && progress.completedAt > 0)
+      completedAt = progress.completedAt
     organizationSaved = typeof progress?.organizationName === 'string' && !!progress.organizationName.trim()
   } catch {
     /* Invalid browser progress must not block first-time setup. */
@@ -52,6 +55,7 @@ export default function FirstBoxWelcome() {
     useCase: profile.data?.useCase ?? null,
     note: profile.data?.note ?? '',
     creditGrantedAt: null,
+    completedAt,
   }
   return <WelcomeForm key={`${user?.profile.sub}:${orgId}`} initial={initial} />
 }

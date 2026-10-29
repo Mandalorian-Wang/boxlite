@@ -592,3 +592,60 @@ it('prepares a persisted handoff before a fresh copy gesture and reports acknowl
   await click(button('Retry confirmation'))
   expect(button('Retry confirmation')).toBeUndefined()
 })
+
+it('ignores a late acknowledgement failure after editing the copied prompt', async () => {
+  const host = document.createElement('div')
+  document.body.append(host)
+  root = createRoot(host)
+  mocks.listBoxes.mockResolvedValue({ data: { items: [] } })
+  await act(async () =>
+    root!.render(
+      <OnboardingGuideDialog
+        inline
+        open
+        onOpenChange={() => {}}
+        onProgressChange={() => {}}
+        preview={{
+          inline: true,
+          recipe: quickstartRecipeFor('application-deployments'),
+          onRecipeChange: () => {},
+          onConsole: () => {},
+          creditCents: 0,
+        }}
+      />,
+    ),
+  )
+  await flush()
+  const button = (label: string) =>
+    [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent?.trim() === label)
+  await click(button('Personal website'))
+  await click(button('Prepare prompt'))
+  expect(mocks.handoff).toHaveBeenCalled()
+  expect(mocks.copy).not.toHaveBeenCalled()
+  expect(button('Copy prompt')).toBeDefined()
+  let rejectAcknowledgement!: (error: Error) => void
+  mocks.markCopied.mockImplementationOnce(
+    () =>
+      new Promise((_, reject) => {
+        rejectAcknowledgement = reject
+      }),
+  )
+  await click(button('Copy prompt'))
+  const copiedId = mocks.markCopied.mock.calls[0][1]
+  const textarea = host.querySelector('textarea')!
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!.call(
+      textarea,
+      'Build a different application',
+    )
+    textarea.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+  await act(async () => rejectAcknowledgement(new Error('late acknowledgement failure')))
+  expect(button('Retry confirmation')).toBeUndefined()
+  await click(button('Prepare prompt'))
+  expect(button('Copy prompt')).toBeDefined()
+  expect(mocks.markCopied).toHaveBeenCalledTimes(1)
+  await click(button('Copy prompt'))
+  expect(mocks.markCopied).toHaveBeenCalledTimes(2)
+  expect(mocks.markCopied.mock.calls[1][1]).not.toBe(copiedId)
+})

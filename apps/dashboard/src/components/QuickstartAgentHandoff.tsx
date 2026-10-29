@@ -101,6 +101,7 @@ function QuickstartAgentHandoffContent({
   const draft = usePromptDraft(orgId, userId, composeRequest)
   const { text: request, setText: setRequest } = draft
   const submission = useRef<{ text: string; id: string } | null>(null)
+  const copiedSubmission = useRef<{ id: string } | null>(null)
   const identity = userId && orgId ? handoffIdentity(userId, orgId) : null
 
   // Members load in the background, and the permission check reads false until
@@ -326,12 +327,13 @@ Verify that the credentials are valid and authorized for this task before execut
   // screen share or a screenshot of this dialog does not leak a credential.
   const shownPrompt = handoff ? buildPrompt(maskKey(handoff.keyValue)) : ''
 
-  const confirmCopy = async () => {
+  const confirmCopy = async (receipt = copiedSubmission.current) => {
+    if (!receipt) return
     try {
-      await api.markPromptCopied(orgId!, submission.current!.id)
-      setConfirmationFailed(false)
+      await api.markPromptCopied(orgId!, receipt.id)
+      if (copiedSubmission.current === receipt) setConfirmationFailed(false)
     } catch {
-      setConfirmationFailed(true)
+      if (copiedSubmission.current === receipt) setConfirmationFailed(true)
     }
   }
 
@@ -354,18 +356,21 @@ Verify that the credentials are valid and authorized for this task before execut
 
   const copy = async () => {
     if (!handoff || (composeRequest && preparedRequest !== request)) return
+    const receipt = composeRequest && submission.current ? { id: submission.current.id } : null
+    copiedSubmission.current = receipt
     setCopying(true)
     try {
       // Invoke the clipboard during this click; network preparation was completed
       // by the previous gesture, so Safari/Firefox retain user activation.
       const success = await copyToClipboard(buildPrompt(handoff.keyValue))
+      if (composeRequest && copiedSubmission.current !== receipt) return
       if (!success) {
         setCopied('failed')
         return
       }
       setCopied('done')
       setCopiedRequest(`${identity}:${request}`)
-      if (composeRequest) await confirmCopy()
+      if (composeRequest) await confirmCopy(receipt)
       else setTimeout(() => setCopied(null), 1600)
     } finally {
       setCopying(false)
@@ -425,6 +430,7 @@ Verify that the credentials are valid and authorized for this task before execut
             placeholder="An app that…"
             value={request}
             onChange={(event) => {
+              copiedSubmission.current = null
               setRequest(event.target.value)
               setCopiedRequest(null)
               setPreparedRequest(null)
@@ -485,6 +491,7 @@ Verify that the credentials are valid and authorized for this task before execut
               key={label}
               type="button"
               onClick={() => {
+                copiedSubmission.current = null
                 setRequest(value)
                 setCopiedRequest(null)
                 setPreparedRequest(null)
