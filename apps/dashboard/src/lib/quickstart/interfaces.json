@@ -9,7 +9,7 @@
     "codeLanguage": "python",
     "setupLabel": "Run in your local terminal",
     "setupDescription": "Run this command in your local development environment to install the Python library. Continue once the install finishes.",
-    "executionDescription": "Creates a Box, runs a command, starts a web server and prints a public preview URL. The Box stays running after the script finishes.",
+    "executionDescription": "Creates a Box, runs a command, starts a web server and prints a public preview URL. The script leaves the Box running; idle auto-stop still applies.",
     "template": "python"
   },
   {
@@ -22,7 +22,7 @@
     "codeLanguage": "typescript",
     "setupLabel": "Run in your local terminal",
     "setupDescription": "Run this command in your local development environment to install the Node library. Continue once the install finishes.",
-    "executionDescription": "Creates a Box, runs a command, starts a web server and prints a public preview URL. The Box stays running after the script finishes.",
+    "executionDescription": "Creates a Box, runs a command, starts a web server and prints a public preview URL. The script leaves the Box running; idle auto-stop still applies.",
     "template": "typescript"
   },
   {
@@ -35,7 +35,7 @@
     "codeLanguage": "go",
     "setupLabel": "Run in your local terminal",
     "setupDescription": "Run this command in your local development environment to install the Go library. Continue once the install finishes.",
-    "executionDescription": "Creates a Box, runs a command, starts a web server and prints a public preview URL. The Box stays running after the script finishes.",
+    "executionDescription": "Creates a Box, runs a command, starts a web server and prints a public preview URL. The script leaves the Box running; idle auto-stop still applies.",
     "template": "go"
   },
   {
@@ -48,7 +48,7 @@
     "codeLanguage": "rust",
     "setupLabel": "Run in your local terminal",
     "setupDescription": "Run this command in your local development environment to install the Rust library. Continue once the install finishes.",
-    "executionDescription": "Creates a Box, runs a command, starts a web server and prints a public preview URL. The Box stays running after the script finishes.",
+    "executionDescription": "Creates a Box, runs a command, starts a web server and prints a public preview URL. The script leaves the Box running; idle auto-stop still applies.",
     "template": "rust"
   },
   {
@@ -61,7 +61,7 @@
     "codeLanguage": "c",
     "setupLabel": "Download C SDK",
     "setupDescription": "Downloads the prebuilt C header and native library. The next step includes boxlite.h and links libboxlite.",
-    "executionDescription": "Creates a Box, runs a command, starts a web server and prints a public preview URL. The Box stays running after the script finishes.",
+    "executionDescription": "Creates a Box, runs a command, starts a web server and prints a public preview URL. The script leaves the Box running; idle auto-stop still applies.",
     "template": "c"
   },
   {
@@ -74,7 +74,7 @@
     "codeLanguage": "bash",
     "setupLabel": "Install CLI",
     "setupDescription": "Installs the boxlite command and checks jq. The example uses curl and jq to discover your organization before creating a Box.",
-    "executionDescription": "Creates a Box, runs a command, starts a web server and prints a public preview URL. The Box stays running after the script finishes.",
+    "executionDescription": "Creates a Box, runs a command, starts a web server and prints a public preview URL. The script leaves the Box running; idle auto-stop still applies.",
     "template": "cli"
   },
   {
@@ -87,7 +87,7 @@
     "codeLanguage": "bash",
     "setupLabel": "Check REST tools",
     "setupDescription": "REST does not require an SDK install. The next step uses curl and jq to create a Box and execute a command. OpenAPI is available for full endpoint reference and generated clients.",
-    "executionDescription": "Creates a Box, runs a command, starts a web server and prints a public preview URL. The Box stays running after the script finishes.",
+    "executionDescription": "Creates a Box, runs a command, starts a web server and prints a public preview URL. The script leaves the Box running; idle auto-stop still applies.",
     "template": "rest"
   }
 ]

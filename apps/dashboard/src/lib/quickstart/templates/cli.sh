@@ -15,4 +15,8 @@ boxlite exec "$box_name" -- {{SHELL_COMMAND}}
 server_code={{SERVER_SH}}
 boxlite exec --detach "$box_name" -- python3 -u -c "$server_code"
 url="$(boxlite network tunnel "$box_name" 3000)"
+if [ -z "$url" ]; then
+  printf 'Cloud did not return a preview URL\n' >&2
+  exit 1
+fi
 printf 'Preview URL: %s\n' "$url"

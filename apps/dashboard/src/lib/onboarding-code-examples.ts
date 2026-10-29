@@ -47,9 +47,9 @@ export BOXLITE_API_KEY`
 
   return `if [ -z "\${BOXLITE_API_KEY:-}" ]; then
   printf "Paste your BoxLite API key from Step 1: " >&2
-  stty -echo
+  if [ -t 0 ]; then stty -echo; fi
   IFS= read -r BOXLITE_API_KEY
-  stty echo
+  if [ -t 0 ]; then stty echo; fi
   printf "\\n" >&2
 fi
 export BOXLITE_API_KEY`

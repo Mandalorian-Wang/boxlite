@@ -493,7 +493,7 @@ function InlineCodeSteps({
           {
             id: 'preview',
             title: '5. Create a preview',
-            note: 'Start a small web server on port 3000 and print its public preview URL. Open that URL in your browser to see Hello from BoxLite. Anyone with the URL can access this demo. Your Box keeps running after the script finishes; manage it from Boxes.',
+            note: 'Start a small web server on port 3000 and print its public preview URL. Open that URL in your browser to see Hello from BoxLite. Anyone with the URL can access this demo. The script leaves your Box running. Idle auto-stop still applies (15 minutes by default); manage it from Boxes.',
             code: parts.preview,
           },
         ] as const

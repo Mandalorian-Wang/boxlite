@@ -134,6 +134,7 @@ describe('OnboardingGuideDialog tabs', () => {
       '4. Run code and commands',
       '5. Create a preview',
     ])
+    expect(document.body.textContent).toContain('Idle auto-stop still applies')
     expect(document.querySelector('select')).toBeNull()
     const cliButton = [...document.querySelectorAll<HTMLButtonElement>('button')].find(
       (item) => item.textContent?.trim() === 'CLI',

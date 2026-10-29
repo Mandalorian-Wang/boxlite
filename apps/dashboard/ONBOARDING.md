@@ -75,14 +75,17 @@ on port 3000. Python, Node, Go, Rust, C, CLI and REST all use the same three-par
 program: create a Box with inbound networking enabled, execute a command, then
 start a Python HTTP server in the guest and print its public preview URL.
 The URL is public and does not require the API key. The script exits without
-stopping or deleting the Box; users manage their running resources in Boxes.
+stopping or deleting the Box; users manage their resources in Boxes. Cloud idle
+auto-stop still applies (15 minutes by default), so the URL is not guaranteed
+to remain available indefinitely.
 
 Save the three displayed parts in order in the named file, or use **Copy full
 example**, then run the file once. Each section and the full example come from
 the same template. The server source is included in the program, so users do
 not need a second file or additional guest packages. SDK install commands pin
 version 0.10.8. CLI and REST discover the organization route through `/v1/me`;
-these examples require curl and jq.
+these examples require curl and jq. Piped API keys bypass terminal echo controls;
+an empty CLI tunnel response fails instead of printing an unusable preview URL.
 
 Templates live in `src/lib/quickstart/templates`. Explicit step markers delimit
 creation, execution and preview. Keep the Box and server running after the
