@@ -106,3 +106,7 @@ The updated guide preserves the language selector and introduces three code part
 The final part prints a public URL and leaves the Box running:
 
 ![Create a preview](docs/quickstart-preview/after-preview.png)
+
+Template validation rejects unknown template references and missing step sections
+before returning copyable code. Boundary tests exercise both failures using the
+real registry and template assets, preventing incomplete programs from reaching users.
