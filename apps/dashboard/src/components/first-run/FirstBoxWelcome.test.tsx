@@ -48,6 +48,7 @@ beforeEach(() => {
   vi.resetAllMocks()
   api.billingApiUrl = 'https://billing.example.test'
   localStorage.clear()
+  sessionStorage.clear()
   api.terms.mockResolvedValue(acceptedTerms)
   api.setup.mockResolvedValue(acceptedTerms)
   api.profile.mockResolvedValue(null)
@@ -62,6 +63,7 @@ afterEach(async () => {
   host.remove()
   client.clear()
   localStorage.clear()
+  sessionStorage.clear()
   vi.unstubAllEnvs()
 })
 it('positions the animation on a fresh organization step without requiring a step change', async () => {
@@ -92,7 +94,7 @@ async function mount(entry = '/welcome') {
   await settle()
 }
 async function click(text: string) {
-  const b = Array.from(host.querySelectorAll('button')).find((e) => e.textContent === text)!
+  const b = Array.from(host.querySelectorAll('button')).find((e) => e.textContent?.trim() === text)!
   await act(async () => b.click())
   await settle()
 }
@@ -274,7 +276,7 @@ it('saves organization and intent before the local card step without polling or 
   expect(host.querySelector<HTMLTextAreaElement>('#welcome-note')!.value).toBe('Overnight tasks')
 })
 
-it('restores saved preview intent directly into card verification', async () => {
+it('restores saved preview intent directly into Get credits', async () => {
   vi.stubEnv('VITE_ENABLE_MOCKING', 'true')
   localStorage.setItem(
     'boxlite:card-verification-preview:user-1:org-1',
@@ -288,7 +290,7 @@ it('restores saved preview intent directly into card verification', async () => 
 it('ignores the preview query when mocking is disabled', async () => {
   api.profile.mockResolvedValue({ useCase: 'exploring', note: '' })
   await mount('/welcome?preview=card-verification')
-  expect(host.textContent).not.toContain('3 Verify card')
+  expect(host.textContent).not.toContain('3 Get credits')
   await click('Start quickstart')
   expect(api.credits).toHaveBeenCalledTimes(1)
   expect(host.textContent).toContain('Quickstart destination')
@@ -299,7 +301,39 @@ it('never enables the prototype in a production build even with the preview flag
   vi.stubEnv('VITE_ENABLE_MOCKING', 'true')
   api.profile.mockResolvedValue({ useCase: 'exploring', note: '' })
   await mount('/welcome?preview=card-verification')
-  expect(host.textContent).not.toContain('3 Verify card')
+  expect(host.textContent).not.toContain('3 Get credits')
   await click('Start quickstart')
   expect(api.credits).toHaveBeenCalledTimes(1)
+})
+
+it('remembers exploring from the credits step without granting or polling credit', async () => {
+  vi.stubEnv('VITE_ENABLE_MOCKING', 'true')
+  const key = 'boxlite:card-verification-preview:user-1:org-1'
+  localStorage.setItem(
+    key,
+    JSON.stringify({ organizationName: 'Preview team', useCase: 'coding-agent', note: 'Saved' }),
+  )
+  await mount('/welcome?preview=card-verification')
+  await vi.waitFor(async () => {
+    await settle()
+    expect(host.textContent).toContain('3 Get credits')
+    expect(host.textContent).toContain('Explore with BoxLite')
+  })
+  await click('Explore with BoxLite')
+  expect(host.textContent).toContain('Quickstart destination')
+  expect(api.credits).not.toHaveBeenCalled()
+  expect(JSON.parse(localStorage.getItem(key)!)).toMatchObject({
+    organizationName: 'Preview team',
+    useCase: 'coding-agent',
+    note: 'Saved',
+    creditGrantedAt: null,
+    completedAt: expect.any(Number),
+  })
+  expect(localStorage.getItem('SkipOnboarding_user-1')).toBe('true')
+  expect(localStorage.getItem('boxlite:welcome:user-1:org-1')).toBeNull()
+  await act(async () => root.unmount())
+  root = createRoot(host)
+  await mount('/welcome?preview=card-verification')
+  expect(host.textContent).toContain('Quickstart destination')
+  expect(api.credits).not.toHaveBeenCalled()
 })

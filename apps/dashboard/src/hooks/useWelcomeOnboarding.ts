@@ -85,5 +85,19 @@ export function useWelcomeOnboarding(initial: FirstRunWelcome, cardVerificationP
       setLocalStorageItem(`${LocalStorageKey.SkipOnboardingPrefix}${user?.profile.sub}`, 'true')
     },
   })
-  return { welcome, action, billingEnabled: Boolean(config.billingApiUrl) }
+  const completePreview = (hasCredits: boolean) => {
+    if (!cardVerificationPreview || !organizationId || !user?.profile.sub) return
+    const completed = {
+      ...welcome,
+      completedAt: Date.now(),
+      creditGrantedAt: hasCredits ? Date.now() : null,
+    }
+    setLocalStorageItem(
+      `${CARD_VERIFICATION_PREVIEW_KEY}:${user.profile.sub}:${organizationId}`,
+      JSON.stringify(completed),
+    )
+    setLocalStorageItem(`${LocalStorageKey.SkipOnboardingPrefix}${user.profile.sub}`, 'true')
+    setWelcome(completed)
+  }
+  return { welcome, action, completePreview, billingEnabled: Boolean(config.billingApiUrl) }
 }

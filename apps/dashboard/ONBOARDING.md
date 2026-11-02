@@ -42,6 +42,38 @@ Public templates share their catalog with Images. Virtual and curated template r
 
 ## UI comparison
 
+### Optional credits step (local preview, 2026-11-02)
+
+The third preview step is Get credits. Keep the scenario copy, animated Box,
+two-column layout and $100 offer. The primary action explicitly says
+“Verify card & claim $100”. An “or” divider leads directly to the visible promo-code field;
+the footer offers “Explore with BoxLite” with the explanation that creating a Box
+requires credits. No confirmation dialog is needed to leave this step.
+
+Source review: `WelcomeCardVerificationDemo` already owns simulated verification,
+delivery, failures and session restoration. `FirstBoxWelcome` owns the step label
+and scoped welcome completion. `useWelcomeOnboarding` deliberately skips real
+credit polling for this preview. Reuse those boundaries; do not route the preview
+through production signup-credit APIs or treat browser state as a real balance.
+Three equal cards or a second modal would compete with the existing main action;
+an “or” divider keeps card verification prominent while exposing the alternative
+without another click. Native form controls preserve keyboard and submit behavior.
+
+The local promo fixture `BOXLITE20` grants $20; `EXPIRED20` and `USED20` exercise
+refusals. Unknown/empty codes never grant credits. A successful redemption replaces
+the $100 offer with the actual amount, records the promo source, and never claims
+that a card was verified. Repeating a completed preview cannot duplicate the grant.
+Entering Console records preview completion separately from credit receipt, scoped
+to the user and organization. Failed/ineligible verification retains the promo and
+Console entrances; pending verification retains the Console entrance.
+
+Acceptance: verify ordinary card consent and delayed delivery still work; promo
+success, validation, repeat entry and cancellation preserve their state; exploration
+grants nothing and survives welcome remount; both development gates remain intact.
+Inspect desktop light/dark and mobile layout, immediately visible input and keyboard use.
+The real coupon service, wallet admission policy, purchases and provider verification
+remain separate integration work. Local preview state is never production evidence.
+
 The [onboarding rework gallery](docs/onboarding-rework/README.md) covers organization
 terms acceptance, use-case selection, card confirmation and credit delivery. It
 describes the boundary between implemented backend persistence and the

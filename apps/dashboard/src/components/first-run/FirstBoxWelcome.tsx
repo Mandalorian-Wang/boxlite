@@ -119,7 +119,7 @@ function WelcomeForm({
   cardVerificationPreview: boolean
   terms: OrganizationTerms
 }) {
-  const { welcome, action, billingEnabled } = useWelcomeOnboarding(initial, cardVerificationPreview)
+  const { welcome, action, completePreview, billingEnabled } = useWelcomeOnboarding(initial, cardVerificationPreview)
   const [step, setStep] = useState<'organization' | 'intent' | 'verify'>(
     !terms.acceptedAt
       ? 'organization'
@@ -174,7 +174,7 @@ function WelcomeForm({
           {cardVerificationPreview && (
             <>
               <span aria-hidden="true">/</span>
-              <span className={step === 'verify' ? 'text-foreground' : ''}>3 Verify card</span>
+              <span className={step === 'verify' ? 'text-foreground' : ''}>3 Get credits</span>
             </>
           )}
         </div>
@@ -402,8 +402,9 @@ function WelcomeForm({
           </form>
         )}
         {step === 'verify' && cardVerificationPreview && (
-          <Suspense fallback={<p>Loading card verification…</p>}>
+          <Suspense fallback={<p>Loading credits…</p>}>
             <WelcomeCardVerificationDemo
+              onContinue={completePreview}
               illustrationRef={setIllustrationAnchor}
               useCase={welcome.useCase}
               onBack={() => {

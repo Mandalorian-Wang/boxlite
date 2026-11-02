@@ -41,12 +41,13 @@ function button(name: string) {
   return [...document.querySelectorAll('button')].find((node) => node.textContent?.trim() === name)!
 }
 async function click(name: string) {
+  expect(button(name), `Expected the ${name} action to be available`).toBeDefined()
   await act(async () => button(name).click())
 }
 async function advance(ms: number) {
   await act(async () => vi.advanceTimersByTime(ms))
 }
-async function verify(action = 'Verify card & continue') {
+async function verify(action = 'Verify card & claim $100') {
   await click(action)
   expect(button('Save card').disabled).toBe(true)
   await act(async () => document.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click())
@@ -70,7 +71,7 @@ it('requires consent, verifies first, and exposes Quickstart only after credits 
 
 it('cancelling card entry does not verify or grant credit', async () => {
   await mount()
-  await click('Verify card & continue')
+  await click('Verify card & claim $100')
   await click('Cancel')
   await advance(10000)
   expect(JSON.parse(sessionStorage.getItem(KEY)!).status).toBe('unverified')
@@ -113,7 +114,7 @@ it('rechecks delayed credit without repeating card verification and restores com
   root = createRoot(host)
   await mount('delayed')
   expect(host.textContent).toContain('Your credits are ready.')
-  expect(button('Verify card & continue')).toBeUndefined()
+  expect(button('Verify card & claim $100')).toBeUndefined()
 })
 
 it('does not complete an interrupted verification after unmount', async () => {
@@ -124,6 +125,79 @@ it('does not complete an interrupted verification after unmount', async () => {
   expect(JSON.parse(sessionStorage.getItem(KEY)!).status).toBe('verifying')
   root = createRoot(host)
   await mount()
-  expect(button('Verify card & continue')).toBeDefined()
+  expect(button('Verify card & claim $100')).toBeDefined()
   expect(button('Start quickstart')).toBeUndefined()
+})
+
+async function redeem(code: string) {
+  const field = host.querySelector<HTMLInputElement>('#welcome-promo-code')!
+  expect(field, 'Expected an inline promo-code field').not.toBeNull()
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(field, code)
+    field.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+  await act(async () => field.form!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })))
+}
+
+it('lets users explore without card verification or a credit grant', async () => {
+  await mount()
+  expect(host.textContent).toContain('You’ll need credits to create a Box.')
+  await click('Explore with BoxLite')
+  expect(host.textContent).toContain('Quickstart destination')
+  expect(JSON.parse(sessionStorage.getItem(KEY)!)).toMatchObject({ status: 'unverified', attempts: 0 })
+})
+
+it('redeems the promo amount without fabricating a verified card and restores it once', async () => {
+  await mount()
+  await redeem(' boxlite20 ')
+  expect(host.textContent).toContain('Redeeming your code…')
+  await advance(800)
+  expect(host.querySelector('[aria-label="$20"]')).not.toBeNull()
+  expect(host.querySelector('[aria-label="$100"]')).toBeNull()
+  expect(host.textContent).toContain('Promo code redeemed')
+  expect(host.textContent).not.toContain('Visa ending')
+  expect(host.querySelector('#welcome-promo-code')).toBeNull()
+  await act(async () => root.unmount())
+  root = createRoot(host)
+  await mount()
+  expect(host.querySelector('[aria-label="$20"]')).not.toBeNull()
+  expect(button('Verify card & claim $100')).toBeUndefined()
+  await click('Start quickstart')
+  expect(host.textContent).toContain('Quickstart destination')
+})
+
+it.each([
+  ['', 'Enter a promo code.'],
+  ['UNKNOWN', 'This promo code is not valid.'],
+  ['EXPIRED20', 'This promo code has expired.'],
+  ['USED20', 'This promo code has already been redeemed.'],
+])('refuses promo %j without granting credits or hiding alternatives', async (code, message) => {
+  await mount()
+  await redeem(code)
+  expect(host.querySelector('[role="alert"]')?.textContent).toBe(message)
+  expect(host.querySelector<HTMLInputElement>('#welcome-promo-code')!.value).toBe(code)
+  expect(button('Verify card & claim $100').disabled).toBe(false)
+  expect(button('Explore with BoxLite').disabled).toBe(false)
+  expect(JSON.parse(sessionStorage.getItem(KEY)!).status).toBe('unverified')
+})
+
+it('allows a promo after an ineligible card without re-verifying', async () => {
+  await mount('used-card')
+  await verify()
+  await advance(1200)
+  expect(button('Explore with BoxLite').disabled).toBe(false)
+  await redeem('BOXLITE20')
+  await advance(800)
+  expect(host.querySelector('[aria-label="$20"]')).not.toBeNull()
+  expect(host.textContent).not.toContain('Visa ending')
+  expect(JSON.parse(sessionStorage.getItem(`${KEY}:used-card`)!).attempts).toBe(1)
+})
+
+it('can leave during verification without completing an interrupted grant', async () => {
+  await mount()
+  await verify()
+  await click('Explore with BoxLite')
+  await advance(10000)
+  expect(host.textContent).toContain('Quickstart destination')
+  expect(JSON.parse(sessionStorage.getItem(KEY)!).status).toBe('verifying')
 })
