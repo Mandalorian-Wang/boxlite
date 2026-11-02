@@ -133,6 +133,7 @@ if (existsSync(docsDir)) {
 // onboarding contracts; other generated model timestamp contracts stay intact.
 for (const [model, fields] of Object.entries({
   'onboarding-dto': ['submittedAt'],
+  'organization-terms-dto': ['acceptedAt'],
   'prompt-draft-dto': ['updatedAt'],
   'prompt-handoff-dto': ['createdAt', 'copiedAt'],
 })) {

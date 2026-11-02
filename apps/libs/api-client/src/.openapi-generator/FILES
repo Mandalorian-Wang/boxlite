@@ -123,6 +123,7 @@ docs/OrganizationInvitation.md
 docs/OrganizationReferralCode.md
 docs/OrganizationRole.md
 docs/OrganizationSuspension.md
+docs/OrganizationTermsDto.md
 docs/OrganizationUnsuspension.md
 docs/OrganizationUser.md
 docs/OrganizationsApi.md
@@ -156,6 +157,7 @@ docs/RunnerServiceHealth.md
 docs/RunnerState.md
 docs/RunnersApi.md
 docs/SaveOnboardingDto.md
+docs/SaveOrganizationSetupDto.md
 docs/SavePromptDraftDto.md
 docs/SendWebhookDto.md
 docs/StorageAccessDto.md
@@ -275,6 +277,7 @@ models/organization-invitation.ts
 models/organization-referral-code.ts
 models/organization-role.ts
 models/organization-suspension.ts
+models/organization-terms-dto.ts
 models/organization-unsuspension.ts
 models/organization-user.ts
 models/organization.ts
@@ -304,6 +307,7 @@ models/runner-service-health.ts
 models/runner-state.ts
 models/runner.ts
 models/save-onboarding-dto.ts
+models/save-organization-setup-dto.ts
 models/save-prompt-draft-dto.ts
 models/send-webhook-dto.ts
 models/storage-access-dto.ts

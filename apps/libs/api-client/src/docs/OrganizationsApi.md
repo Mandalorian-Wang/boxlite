@@ -22,6 +22,7 @@ All URIs are relative to *http://localhost:3000*
 |[**getOrganizationOnboarding**](#getorganizationonboarding) | **GET** /organizations/{organizationId}/onboarding | Read organization onboarding answers|
 |[**getOrganizationOtelConfigByBoxAuthToken**](#getorganizationotelconfigbyboxauthtoken) | **GET** /organizations/otel-config/by-box-auth-token/{authToken} | Get organization OTEL config by box auth token|
 |[**getOrganizationReferralCode**](#getorganizationreferralcode) | **GET** /organizations/{organizationId}/referral-code | Get or initialize an organization invitation code|
+|[**getOrganizationTerms**](#getorganizationterms) | **GET** /organizations/{organizationId}/onboarding/terms | Read current terms and your acceptance|
 |[**getQuickstartPrompt**](#getquickstartprompt) | **GET** /organizations/{organizationId}/quickstart/prompt | Read your prompt draft in this organization|
 |[**getRegionById**](#getregionbyid) | **GET** /regions/{id} | Get region by ID|
 |[**leaveOrganization**](#leaveorganization) | **POST** /organizations/{organizationId}/leave | Leave organization|
@@ -34,6 +35,7 @@ All URIs are relative to *http://localhost:3000*
 |[**markQuickstartHandoffCopied**](#markquickstarthandoffcopied) | **PATCH** /organizations/{organizationId}/quickstart/handoffs/{requestId}/copied | Record successful clipboard copy|
 |[**regenerateProxyApiKey**](#regenerateproxyapikey) | **POST** /regions/{id}/regenerate-proxy-api-key | Regenerate proxy API key for a region|
 |[**saveOrganizationOnboarding**](#saveorganizationonboarding) | **PUT** /organizations/{organizationId}/onboarding | Save organization onboarding answers|
+|[**saveOrganizationSetup**](#saveorganizationsetup) | **PUT** /organizations/{organizationId}/onboarding/setup | Save organization name and accept current terms|
 |[**saveQuickstartPrompt**](#savequickstartprompt) | **PUT** /organizations/{organizationId}/quickstart/prompt | Save your prompt draft with revision checking|
 |[**setOrganizationDefaultRegion**](#setorganizationdefaultregion) | **PATCH** /organizations/{organizationId}/default-region | Set default region for organization|
 |[**suspendOrganization**](#suspendorganization) | **POST** /organizations/{organizationId}/suspend | Suspend organization|
@@ -970,6 +972,56 @@ const { status, data } = await apiInstance.getOrganizationReferralCode(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getOrganizationTerms**
+> OrganizationTermsDto getOrganizationTerms()
+
+
+### Example
+
+```typescript
+import {
+    OrganizationsApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new OrganizationsApi(configuration);
+
+let organizationId: string; //
+
+const { status, data } = await apiInstance.getOrganizationTerms(
+    organizationId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **organizationId** | [**string**] |  | |
+
+
+### Return type
+
+**OrganizationTermsDto**
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getQuickstartPrompt**
 > PromptDraftDto getQuickstartPrompt()
 
@@ -1551,6 +1603,60 @@ const { status, data } = await apiInstance.saveOrganizationOnboarding(
 ### Return type
 
 **OnboardingDto**
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **saveOrganizationSetup**
+> OrganizationTermsDto saveOrganizationSetup(saveOrganizationSetupDto)
+
+
+### Example
+
+```typescript
+import {
+    OrganizationsApi,
+    Configuration,
+    SaveOrganizationSetupDto
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new OrganizationsApi(configuration);
+
+let organizationId: string; //
+let saveOrganizationSetupDto: SaveOrganizationSetupDto; //
+
+const { status, data } = await apiInstance.saveOrganizationSetup(
+    organizationId,
+    saveOrganizationSetupDto
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **saveOrganizationSetupDto** | **SaveOrganizationSetupDto**|  | |
+| **organizationId** | [**string**] |  | |
+
+
+### Return type
+
+**OrganizationTermsDto**
 
 ### Authorization
 

@@ -25,7 +25,7 @@ jest.mock('../services/organization-user.service', () => ({
 jest.mock('../../common/guards/authenticated-rate-limit.guard', () => ({ AuthenticatedRateLimitGuard: class {} }))
 
 describe('onboarding route access', () => {
-  it('publishes the six endpoints and nullable reads in OpenAPI', async () => {
+  it('publishes the eight endpoints and nullable reads in OpenAPI', async () => {
     const module = await Test.createTestingModule({
       controllers: [OnboardingController],
       providers: [{ provide: OnboardingService, useValue: {} }],
@@ -42,7 +42,7 @@ describe('onboarding route access', () => {
       await app.init()
       const doc = SwaggerModule.createDocument(app, new DocumentBuilder().build())
       const operations = Object.values(doc.paths).flatMap((path) => Object.values(path))
-      expect(operations).toHaveLength(6)
+      expect(operations).toHaveLength(8)
       const read = doc.paths['/organizations/{organizationId}/onboarding'].get!
       expect(read.operationId).toBe('getOrganizationOnboarding')
       expect((read.responses['200'] as any).content['application/json'].schema.nullable).toBe(true)
@@ -77,6 +77,17 @@ describe('onboarding route access', () => {
     expect(saveDraft).toHaveBeenCalledWith('org', 'authenticated', input)
   })
 
+  it('binds terms reads and setup acceptance to the authenticated user', async () => {
+    const service = { getTerms: jest.fn(), saveSetup: jest.fn() }
+    const controller = new OnboardingController(service as unknown as OnboardingService)
+    const auth = { userId: 'authenticated' } as AuthContext
+    const input = { name: 'Acme', accepted: true, termsVersion: '2026-10-10', privacyVersion: '2026-10-10' }
+    await controller.getTerms('org', auth)
+    await controller.saveSetup('org', auth, input)
+    expect(service.getTerms).toHaveBeenCalledWith('org', 'authenticated')
+    expect(service.saveSetup).toHaveBeenCalledWith('org', 'authenticated', input)
+  })
+
   it('forwards reads and mutations using the authenticated organization and user', async () => {
     const service = {
       getOnboarding: jest.fn().mockResolvedValue(null),
@@ -107,6 +118,8 @@ describe('onboarding route access', () => {
   it.each([
     [null, 'saveDraft', false],
     [OrganizationMemberRole.MEMBER, 'saveOnboarding', false],
+    [OrganizationMemberRole.MEMBER, 'saveSetup', false],
+    [OrganizationMemberRole.OWNER, 'saveSetup', true],
     [OrganizationMemberRole.OWNER, 'saveOnboarding', true],
     [OrganizationMemberRole.MEMBER, 'saveDraft', true],
     [OrganizationMemberRole.MEMBER, 'createHandoff', true],

@@ -222,6 +222,25 @@ describe('ApiClient terminal session', () => {
   })
 })
 
+it('sends versioned terms acceptance to the selected organization without client identity or timestamp', async () => {
+  const requests: any[] = []
+  const response = { termsVersion: '2026-10-10', privacyVersion: '2026-10-10', acceptedAt: '2026-11-02T00:00:00.000Z' }
+  const api = await makeClient(vi.fn(), 200, response, requests)
+  const input = {
+    name: 'Acme',
+    accepted: true,
+    termsVersion: response.termsVersion,
+    privacyVersion: response.privacyVersion,
+  }
+  await expect(api.getOrganizationTerms('org/one')).resolves.toEqual(response)
+  await expect(api.saveOrganizationSetup('org/one', input)).resolves.toEqual(response)
+  expect(requests.map(({ method, url }) => [method, url])).toEqual([
+    ['get', '/organizations/org%2Fone/onboarding/terms'],
+    ['put', '/organizations/org%2Fone/onboarding/setup'],
+  ])
+  expect(JSON.parse(requests[1].data)).toEqual(input)
+})
+
 it('sends organization-scoped onboarding requests with revisions and no generated credentials', async () => {
   const requests: any[] = []
   const result = { text: 'Build a dashboard', revision: 2 }

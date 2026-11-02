@@ -6,6 +6,7 @@
 
 import { OnboardingController } from './controllers/onboarding.controller'
 import { OnboardingService } from './services/onboarding.service'
+import { OrganizationTermsAcceptance } from './entities/organization-terms-acceptance.entity'
 import { QuickstartPromptDraft, QuickstartPromptHandoff } from './entities/quickstart-prompt.entity'
 import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
@@ -42,6 +43,7 @@ import { UsageController } from '../usage/controllers/usage.controller'
     RegionModule,
     TypeOrmModule.forFeature([
       Organization,
+      OrganizationTermsAcceptance,
       QuickstartPromptDraft,
       QuickstartPromptHandoff,
       OrganizationRole,

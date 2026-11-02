@@ -112,6 +112,7 @@ model_organization_invitation.go
 model_organization_referral_code.go
 model_organization_role.go
 model_organization_suspension.go
+model_organization_terms_dto.go
 model_organization_unsuspension.go
 model_organization_user.go
 model_otel_config.go
@@ -140,6 +141,7 @@ model_runner_healthcheck.go
 model_runner_service_health.go
 model_runner_state.go
 model_save_onboarding_dto.go
+model_save_organization_setup_dto.go
 model_save_prompt_draft_dto.go
 model_send_webhook_dto.go
 model_storage_access_dto.go

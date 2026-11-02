@@ -48,6 +48,8 @@ import type { OrganizationRole } from '../models';
 // @ts-ignore
 import type { OrganizationSuspension } from '../models';
 // @ts-ignore
+import type { OrganizationTermsDto } from '../models';
+// @ts-ignore
 import type { OrganizationUnsuspension } from '../models';
 // @ts-ignore
 import type { OrganizationUser } from '../models';
@@ -63,6 +65,8 @@ import type { RegenerateApiKeyResponse } from '../models';
 import type { Region } from '../models';
 // @ts-ignore
 import type { SaveOnboardingDto } from '../models';
+// @ts-ignore
+import type { SaveOrganizationSetupDto } from '../models';
 // @ts-ignore
 import type { SavePromptDraftDto } from '../models';
 // @ts-ignore
@@ -827,6 +831,44 @@ export const OrganizationsApiAxiosParamCreator = function (configuration?: Confi
         },
         /**
          * 
+         * @summary Read current terms and your acceptance
+         * @param {string} organizationId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getOrganizationTerms: async (organizationId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'organizationId' is not null or undefined
+            assertParamExists('getOrganizationTerms', 'organizationId', organizationId)
+            const localVarPath = `/organizations/{organizationId}/onboarding/terms`
+                .replace('{organizationId}', encodeURIComponent(String(organizationId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary Read your prompt draft in this organization
          * @param {string} organizationId 
          * @param {*} [options] Override http request option.
@@ -1301,6 +1343,49 @@ export const OrganizationsApiAxiosParamCreator = function (configuration?: Confi
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(saveOnboardingDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Save organization name and accept current terms
+         * @param {string} organizationId 
+         * @param {SaveOrganizationSetupDto} saveOrganizationSetupDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        saveOrganizationSetup: async (organizationId: string, saveOrganizationSetupDto: SaveOrganizationSetupDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'organizationId' is not null or undefined
+            assertParamExists('saveOrganizationSetup', 'organizationId', organizationId)
+            // verify required parameter 'saveOrganizationSetupDto' is not null or undefined
+            assertParamExists('saveOrganizationSetup', 'saveOrganizationSetupDto', saveOrganizationSetupDto)
+            const localVarPath = `/organizations/{organizationId}/onboarding/setup`
+                .replace('{organizationId}', encodeURIComponent(String(organizationId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(saveOrganizationSetupDto, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2056,6 +2141,19 @@ export const OrganizationsApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary Read current terms and your acceptance
+         * @param {string} organizationId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getOrganizationTerms(organizationId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrganizationTermsDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getOrganizationTerms(organizationId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrganizationsApi.getOrganizationTerms']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary Read your prompt draft in this organization
          * @param {string} organizationId 
          * @param {*} [options] Override http request option.
@@ -2210,6 +2308,20 @@ export const OrganizationsApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.saveOrganizationOnboarding(organizationId, saveOnboardingDto, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['OrganizationsApi.saveOrganizationOnboarding']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Save organization name and accept current terms
+         * @param {string} organizationId 
+         * @param {SaveOrganizationSetupDto} saveOrganizationSetupDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async saveOrganizationSetup(organizationId: string, saveOrganizationSetupDto: SaveOrganizationSetupDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrganizationTermsDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.saveOrganizationSetup(organizationId, saveOrganizationSetupDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['OrganizationsApi.saveOrganizationSetup']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -2568,6 +2680,16 @@ export const OrganizationsApiFactory = function (configuration?: Configuration, 
         },
         /**
          * 
+         * @summary Read current terms and your acceptance
+         * @param {string} organizationId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getOrganizationTerms(organizationId: string, options?: RawAxiosRequestConfig): AxiosPromise<OrganizationTermsDto> {
+            return localVarFp.getOrganizationTerms(organizationId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary Read your prompt draft in this organization
          * @param {string} organizationId 
          * @param {*} [options] Override http request option.
@@ -2687,6 +2809,17 @@ export const OrganizationsApiFactory = function (configuration?: Configuration, 
          */
         saveOrganizationOnboarding(organizationId: string, saveOnboardingDto: SaveOnboardingDto, options?: RawAxiosRequestConfig): AxiosPromise<OnboardingDto> {
             return localVarFp.saveOrganizationOnboarding(organizationId, saveOnboardingDto, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Save organization name and accept current terms
+         * @param {string} organizationId 
+         * @param {SaveOrganizationSetupDto} saveOrganizationSetupDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        saveOrganizationSetup(organizationId: string, saveOrganizationSetupDto: SaveOrganizationSetupDto, options?: RawAxiosRequestConfig): AxiosPromise<OrganizationTermsDto> {
+            return localVarFp.saveOrganizationSetup(organizationId, saveOrganizationSetupDto, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -3027,6 +3160,17 @@ export class OrganizationsApi extends BaseAPI {
 
     /**
      * 
+     * @summary Read current terms and your acceptance
+     * @param {string} organizationId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getOrganizationTerms(organizationId: string, options?: RawAxiosRequestConfig) {
+        return OrganizationsApiFp(this.configuration).getOrganizationTerms(organizationId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
      * @summary Read your prompt draft in this organization
      * @param {string} organizationId 
      * @param {*} [options] Override http request option.
@@ -3157,6 +3301,18 @@ export class OrganizationsApi extends BaseAPI {
      */
     public saveOrganizationOnboarding(organizationId: string, saveOnboardingDto: SaveOnboardingDto, options?: RawAxiosRequestConfig) {
         return OrganizationsApiFp(this.configuration).saveOrganizationOnboarding(organizationId, saveOnboardingDto, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Save organization name and accept current terms
+     * @param {string} organizationId 
+     * @param {SaveOrganizationSetupDto} saveOrganizationSetupDto 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public saveOrganizationSetup(organizationId: string, saveOrganizationSetupDto: SaveOrganizationSetupDto, options?: RawAxiosRequestConfig) {
+        return OrganizationsApiFp(this.configuration).saveOrganizationSetup(organizationId, saveOrganizationSetupDto, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

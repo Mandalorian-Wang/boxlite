@@ -7,12 +7,13 @@ import { useOrganizations } from './useOrganizations'
 import { useSelectedOrganization } from './useSelectedOrganization'
 import { useConfig } from './useConfig'
 import { queryKeys } from './queries/queryKeys'
-import { type FirstRunWelcome, type FirstRunUseCase } from '@/lib/first-run'
+import { CARD_VERIFICATION_PREVIEW_KEY, type FirstRunWelcome, type FirstRunUseCase } from '@/lib/first-run'
 import { LocalStorageKey } from '@/enums/LocalStorageKey'
 import { setLocalStorageItem } from '@/lib/local-storage'
 import { waitForSignupCredit } from '@/lib/signup-credit'
+import type { OrganizationSetup } from '@/api/apiClient'
 
-export function useWelcomeOnboarding(initial: FirstRunWelcome) {
+export function useWelcomeOnboarding(initial: FirstRunWelcome, cardVerificationPreview = false) {
   const api = useApi()
   const { selectedOrganization } = useSelectedOrganization()
   const { refreshOrganizations } = useOrganizations()
@@ -26,7 +27,7 @@ export function useWelcomeOnboarding(initial: FirstRunWelcome) {
   const action = useMutation({
     mutationFn: async (
       payload:
-        | { type: 'organization'; name: string }
+        | ({ type: 'organization' } & OrganizationSetup)
         | { type: 'intent'; useCase: FirstRunUseCase; note: string; skipCredit?: boolean },
     ) => {
       if (!organizationId) throw new Error('Select an organization and try again.')
@@ -35,14 +36,22 @@ export function useWelcomeOnboarding(initial: FirstRunWelcome) {
       controller.current = active
       const save = (value: FirstRunWelcome) => {
         active.signal.throwIfAborted()
-        setLocalStorageItem(`boxlite:welcome:${user?.profile.sub}:${organizationId}`, JSON.stringify(value))
+        const prefix = cardVerificationPreview ? CARD_VERIFICATION_PREVIEW_KEY : 'boxlite:welcome'
+        setLocalStorageItem(`${prefix}:${user?.profile.sub}:${organizationId}`, JSON.stringify(value))
         setWelcome(value)
       }
       if (payload.type === 'organization') {
         const name = payload.name.trim()
         if (!name || name.length > 60) throw new Error('Enter an organization name of 1–60 characters.')
-        await api.organizationsApi.updateOrganizationName(organizationId, { name })
+        if (!payload.accepted) throw new Error('Accept the Terms of Service to continue.')
+        const terms = await api.saveOrganizationSetup(organizationId, {
+          name,
+          accepted: true,
+          termsVersion: payload.termsVersion,
+          privacyVersion: payload.privacyVersion,
+        })
         active.signal.throwIfAborted()
+        client.setQueryData(['organization-terms', user?.profile.sub, organizationId], terms)
         await refreshOrganizations()
         save({ ...welcome, organizationName: name })
         return
@@ -50,6 +59,8 @@ export function useWelcomeOnboarding(initial: FirstRunWelcome) {
       await api.saveOrganizationOnboarding(organizationId, { useCase: payload.useCase, note: payload.note.trim() })
       active.signal.throwIfAborted()
       save({ ...welcome, useCase: payload.useCase, note: payload.note.trim() })
+      // The local card-verification prototype owns the remaining simulated steps.
+      if (cardVerificationPreview) return
       if (!config.billingApiUrl || payload.skipCredit) {
         save({ ...welcome, useCase: payload.useCase, note: payload.note.trim(), completedAt: Date.now() })
         setLocalStorageItem(`${LocalStorageKey.SkipOnboardingPrefix}${user?.profile.sub}`, 'true')

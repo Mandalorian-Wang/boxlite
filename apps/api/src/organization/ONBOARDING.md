@@ -1,9 +1,22 @@
 # Organization onboarding and prompt persistence
 
 Onboarding is optional organization profile data, separate from billing and Quickstart completion.
+
 Existing organizations return null. Owners may replace the answer; authenticated organization
 members may read it. Server-generated submitter and timestamps cannot be supplied by clients.
 Stable use cases include `long-running-agent`; the old preview `data-jobs` value is not accepted.
+
+## Organization setup and terms acceptance
+
+`GET /organizations/:organizationId/onboarding/terms` returns the current Terms of Service and Privacy Policy URLs/versions and the authenticated user's `acceptedAt` (null until accepted). `PUT /organizations/:organizationId/onboarding/setup` requires an owner and accepts `name`, `accepted: true`, `termsVersion` and `privacyVersion`. It saves the trimmed name and acceptance in one transaction. The published documents currently identify version `2026-10-10`; stale versions return 409 with a reload instruction.
+
+Acceptance identity comes from authentication; PostgreSQL supplies the timestamp. The composite organization/user/document-version key preserves the first timestamp under concurrent retries. Previous versions remain separate rows. Reads cannot use another member's acceptance. The migration adds `organization_terms_acceptance`; apply it before deploying the API and console. Organization deletion cascades these account records. No IP, user-agent, model credentials or payment details are stored.
+
+This is consent capture in organization setup. It does not introduce a global compute-admission gate or migrate existing organizations/invited members into a new acceptance policy. Privacy analytics preferences and payment-method consent remain independent. Before publishing mandatory card verification, align the official Terms §3, which currently says promotional credit requires no payment card, with that new policy.
+
+The terms migration integration suite verifies persistence across service instances, five concurrent submissions preserving one timestamp, user/organization isolation, stale-version rejection, transaction rollback on an acceptance write failure, historical versions, deletion cascade and migration down/up. Run it against the same disposable PostgreSQL setup described below. Generated TypeScript and Go clients expose both new endpoints; TypeScript acceptance timestamps remain ISO strings.
+
+## Profile and prompt endpoints
 
 All endpoints below are relative to `/organizations/:organizationId`, require a user JWT,
 and enforce organization membership through the existing organization guard.

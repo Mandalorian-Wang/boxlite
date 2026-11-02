@@ -220,6 +220,58 @@ paths:
       summary: Delete API key for user
       tags:
       - api-keys
+  /organizations/{organizationId}/onboarding/terms:
+    get:
+      operationId: getOrganizationTerms
+      parameters:
+      - explode: false
+        in: path
+        name: organizationId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationTermsDto"
+          description: ""
+      security:
+      - bearer: []
+      summary: Read current terms and your acceptance
+      tags:
+      - organizations
+  /organizations/{organizationId}/onboarding/setup:
+    put:
+      operationId: saveOrganizationSetup
+      parameters:
+      - explode: false
+        in: path
+        name: organizationId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveOrganizationSetupDto"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationTermsDto"
+          description: ""
+      security:
+      - bearer: []
+      summary: Save organization name and accept current terms
+      tags:
+      - organizations
   /organizations/{organizationId}/onboarding:
     get:
       operationId: getOrganizationOnboarding
@@ -5321,6 +5373,57 @@ components:
       - revision
       - text
       - updatedAt
+      type: object
+    OrganizationTermsDto:
+      example:
+        termsVersion: termsVersion
+        privacyVersion: privacyVersion
+        termsUrl: termsUrl
+        privacyUrl: privacyUrl
+        acceptedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        termsVersion:
+          type: string
+        privacyVersion:
+          type: string
+        termsUrl:
+          type: string
+        privacyUrl:
+          type: string
+        acceptedAt:
+          format: date-time
+          nullable: true
+          type: string
+      required:
+      - acceptedAt
+      - privacyUrl
+      - privacyVersion
+      - termsUrl
+      - termsVersion
+      type: object
+    SaveOrganizationSetupDto:
+      example:
+        name: name
+        accepted: true
+        termsVersion: termsVersion
+        privacyVersion: privacyVersion
+      properties:
+        name:
+          maxLength: 60
+          type: string
+        accepted:
+          type: boolean
+        termsVersion:
+          maxLength: 40
+          type: string
+        privacyVersion:
+          maxLength: 40
+          type: string
+      required:
+      - accepted
+      - name
+      - privacyVersion
+      - termsVersion
       type: object
     SaveOnboardingDto:
       example:

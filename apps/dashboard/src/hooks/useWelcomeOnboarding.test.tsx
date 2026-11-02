@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { useWelcomeOnboarding } from './useWelcomeOnboarding'
 const api = vi.hoisted(() => ({
-  rename: vi.fn(),
+  setup: vi.fn(),
   refresh: vi.fn(),
   delivery: vi.fn(),
   save: vi.fn(),
@@ -14,7 +14,7 @@ const api = vi.hoisted(() => ({
 vi.mock('./useApi', () => ({
   useApi: () => ({
     saveOrganizationOnboarding: api.save,
-    organizationsApi: { updateOrganizationName: api.rename },
+    saveOrganizationSetup: api.setup,
     billingApi: { getSignupCreditDelivery: api.delivery },
   }),
 }))
@@ -24,6 +24,7 @@ vi.mock('./useSelectedOrganization', () => ({
 }))
 vi.mock('./useConfig', () => ({ useConfig: () => ({ billingApiUrl: api.billingApiUrl }) }))
 vi.mock('react-oidc-context', () => ({ useAuth: () => ({ user: { profile: { sub: 'user-1' } } }) }))
+const acceptance = { accepted: true, termsVersion: '2026-10-10', privacyVersion: '2026-10-10' }
 let current: ReturnType<typeof useWelcomeOnboarding>
 let root: Root
 let client: QueryClient
@@ -50,18 +51,18 @@ afterEach(async () => {
   client.clear()
   localStorage.clear()
 })
-it('renames the selected organization through the existing API before saving the step', async () => {
+it('saves name and acceptance together before completing the organization step', async () => {
   await act(async () => {
-    await current.action.mutateAsync({ type: 'organization', name: '  New name  ' })
+    await current.action.mutateAsync({ type: 'organization', ...acceptance, name: '  New name  ' })
   })
-  expect(api.rename).toHaveBeenCalledWith('org-1', { name: 'New name' })
+  expect(api.setup).toHaveBeenCalledWith('org-1', { name: 'New name', ...acceptance })
   expect(api.refresh).toHaveBeenCalledTimes(1)
   expect(current.welcome.organizationName).toBe('New name')
 })
 it('keeps the organization step incomplete if rename fails', async () => {
-  api.rename.mockRejectedValue(new Error('permission denied'))
+  api.setup.mockRejectedValue(new Error('permission denied'))
   await act(async () => {
-    await expect(current.action.mutateAsync({ type: 'organization', name: 'New name' })).rejects.toThrow(
+    await expect(current.action.mutateAsync({ type: 'organization', ...acceptance, name: 'New name' })).rejects.toThrow(
       'permission denied',
     )
   })
@@ -129,7 +130,7 @@ it('finishes without inventing credit delivery when billing is disabled', async 
   expect(localStorage.getItem('SkipOnboarding_user-1')).toBe('true')
 })
 it('does not dismiss unfinished setup on the organization step', async () => {
-  await act(async () => current.action.mutateAsync({ type: 'organization', name: 'New name' }))
+  await act(async () => current.action.mutateAsync({ type: 'organization', ...acceptance, name: 'New name' }))
   expect(localStorage.getItem('SkipOnboarding_user-1')).toBeNull()
 })
 

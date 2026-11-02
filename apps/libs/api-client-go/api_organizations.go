@@ -252,6 +252,19 @@ type OrganizationsAPI interface {
 	GetOrganizationReferralCodeExecute(r OrganizationsAPIGetOrganizationReferralCodeRequest) (*OrganizationReferralCode, *http.Response, error)
 
 	/*
+	GetOrganizationTerms Read current terms and your acceptance
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId
+	@return OrganizationsAPIGetOrganizationTermsRequest
+	*/
+	GetOrganizationTerms(ctx context.Context, organizationId string) OrganizationsAPIGetOrganizationTermsRequest
+
+	// GetOrganizationTermsExecute executes the request
+	//  @return OrganizationTermsDto
+	GetOrganizationTermsExecute(r OrganizationsAPIGetOrganizationTermsRequest) (*OrganizationTermsDto, *http.Response, error)
+
+	/*
 	GetQuickstartPrompt Read your prompt draft in this organization
 
 	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
@@ -403,6 +416,19 @@ type OrganizationsAPI interface {
 	// SaveOrganizationOnboardingExecute executes the request
 	//  @return OnboardingDto
 	SaveOrganizationOnboardingExecute(r OrganizationsAPISaveOrganizationOnboardingRequest) (*OnboardingDto, *http.Response, error)
+
+	/*
+	SaveOrganizationSetup Save organization name and accept current terms
+
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param organizationId
+	@return OrganizationsAPISaveOrganizationSetupRequest
+	*/
+	SaveOrganizationSetup(ctx context.Context, organizationId string) OrganizationsAPISaveOrganizationSetupRequest
+
+	// SaveOrganizationSetupExecute executes the request
+	//  @return OrganizationTermsDto
+	SaveOrganizationSetupExecute(r OrganizationsAPISaveOrganizationSetupRequest) (*OrganizationTermsDto, *http.Response, error)
 
 	/*
 	SaveQuickstartPrompt Save your prompt draft with revision checking
@@ -2375,6 +2401,107 @@ func (a *OrganizationsAPIService) GetOrganizationReferralCodeExecute(r Organizat
 	return localVarReturnValue, localVarHTTPResponse, nil
 }
 
+type OrganizationsAPIGetOrganizationTermsRequest struct {
+	ctx context.Context
+	ApiService OrganizationsAPI
+	organizationId string
+}
+
+func (r OrganizationsAPIGetOrganizationTermsRequest) Execute() (*OrganizationTermsDto, *http.Response, error) {
+	return r.ApiService.GetOrganizationTermsExecute(r)
+}
+
+/*
+GetOrganizationTerms Read current terms and your acceptance
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param organizationId
+ @return OrganizationsAPIGetOrganizationTermsRequest
+*/
+func (a *OrganizationsAPIService) GetOrganizationTerms(ctx context.Context, organizationId string) OrganizationsAPIGetOrganizationTermsRequest {
+	return OrganizationsAPIGetOrganizationTermsRequest{
+		ApiService: a,
+		ctx: ctx,
+		organizationId: organizationId,
+	}
+}
+
+// Execute executes the request
+//  @return OrganizationTermsDto
+func (a *OrganizationsAPIService) GetOrganizationTermsExecute(r OrganizationsAPIGetOrganizationTermsRequest) (*OrganizationTermsDto, *http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *OrganizationTermsDto
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "OrganizationsAPIService.GetOrganizationTerms")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organizationId}/onboarding/terms"
+	localVarPath = strings.Replace(localVarPath, "{"+"organizationId"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
 type OrganizationsAPIGetQuickstartPromptRequest struct {
 	ctx context.Context
 	ApiService OrganizationsAPI
@@ -3572,6 +3699,118 @@ func (a *OrganizationsAPIService) SaveOrganizationOnboardingExecute(r Organizati
 	}
 	// body params
 	localVarPostBody = r.saveOnboardingDto
+	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
+	if err != nil {
+		return localVarReturnValue, nil, err
+	}
+
+	localVarHTTPResponse, err := a.client.callAPI(req)
+	if err != nil || localVarHTTPResponse == nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	localVarBody, err := io.ReadAll(localVarHTTPResponse.Body)
+	localVarHTTPResponse.Body.Close()
+	localVarHTTPResponse.Body = io.NopCloser(bytes.NewBuffer(localVarBody))
+	if err != nil {
+		return localVarReturnValue, localVarHTTPResponse, err
+	}
+
+	if localVarHTTPResponse.StatusCode >= 300 {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: localVarHTTPResponse.Status,
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	err = a.client.decode(&localVarReturnValue, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
+	if err != nil {
+		newErr := &GenericOpenAPIError{
+			body:  localVarBody,
+			error: err.Error(),
+		}
+		return localVarReturnValue, localVarHTTPResponse, newErr
+	}
+
+	return localVarReturnValue, localVarHTTPResponse, nil
+}
+
+type OrganizationsAPISaveOrganizationSetupRequest struct {
+	ctx context.Context
+	ApiService OrganizationsAPI
+	organizationId string
+	saveOrganizationSetupDto *SaveOrganizationSetupDto
+}
+
+func (r OrganizationsAPISaveOrganizationSetupRequest) SaveOrganizationSetupDto(saveOrganizationSetupDto SaveOrganizationSetupDto) OrganizationsAPISaveOrganizationSetupRequest {
+	r.saveOrganizationSetupDto = &saveOrganizationSetupDto
+	return r
+}
+
+func (r OrganizationsAPISaveOrganizationSetupRequest) Execute() (*OrganizationTermsDto, *http.Response, error) {
+	return r.ApiService.SaveOrganizationSetupExecute(r)
+}
+
+/*
+SaveOrganizationSetup Save organization name and accept current terms
+
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param organizationId
+ @return OrganizationsAPISaveOrganizationSetupRequest
+*/
+func (a *OrganizationsAPIService) SaveOrganizationSetup(ctx context.Context, organizationId string) OrganizationsAPISaveOrganizationSetupRequest {
+	return OrganizationsAPISaveOrganizationSetupRequest{
+		ApiService: a,
+		ctx: ctx,
+		organizationId: organizationId,
+	}
+}
+
+// Execute executes the request
+//  @return OrganizationTermsDto
+func (a *OrganizationsAPIService) SaveOrganizationSetupExecute(r OrganizationsAPISaveOrganizationSetupRequest) (*OrganizationTermsDto, *http.Response, error) {
+	var (
+		localVarHTTPMethod   = http.MethodPut
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *OrganizationTermsDto
+	)
+
+	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "OrganizationsAPIService.SaveOrganizationSetup")
+	if err != nil {
+		return localVarReturnValue, nil, &GenericOpenAPIError{error: err.Error()}
+	}
+
+	localVarPath := localBasePath + "/organizations/{organizationId}/onboarding/setup"
+	localVarPath = strings.Replace(localVarPath, "{"+"organizationId"+"}", url.PathEscape(parameterValueToString(r.organizationId, "organizationId")), -1)
+
+	localVarHeaderParams := make(map[string]string)
+	localVarQueryParams := url.Values{}
+	localVarFormParams := url.Values{}
+	if r.saveOrganizationSetupDto == nil {
+		return localVarReturnValue, nil, reportError("saveOrganizationSetupDto is required and must be specified")
+	}
+
+	// to determine the Content-Type header
+	localVarHTTPContentTypes := []string{"application/json"}
+
+	// set Content-Type header
+	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
+	if localVarHTTPContentType != "" {
+		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+	}
+
+	// to determine the Accept header
+	localVarHTTPHeaderAccepts := []string{"application/json"}
+
+	// set Accept header
+	localVarHTTPHeaderAccept := selectHeaderAccept(localVarHTTPHeaderAccepts)
+	if localVarHTTPHeaderAccept != "" {
+		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
+	}
+	// body params
+	localVarPostBody = r.saveOrganizationSetupDto
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err

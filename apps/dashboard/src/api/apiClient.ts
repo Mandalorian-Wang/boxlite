@@ -79,12 +79,32 @@ export interface OrganizationOnboarding {
   submittedBy: string
   submittedAt: string
 }
+export interface OrganizationTerms {
+  termsVersion: string
+  privacyVersion: string
+  termsUrl: string
+  privacyUrl: string
+  acceptedAt: string | null
+}
+export interface OrganizationSetup {
+  name: string
+  accepted: boolean
+  termsVersion: string
+  privacyVersion: string
+}
 export interface PromptDraft {
   text: string
   revision: number
   updatedAt: string
 }
 export class ApiClient {
+  public async getOrganizationTerms(org: string): Promise<OrganizationTerms> {
+    return (await this.http.get(`/organizations/${encodeURIComponent(org)}/onboarding/terms`, this.v1Config())).data
+  }
+  public async saveOrganizationSetup(org: string, value: OrganizationSetup): Promise<OrganizationTerms> {
+    return (await this.http.put(`/organizations/${encodeURIComponent(org)}/onboarding/setup`, value, this.v1Config()))
+      .data
+  }
   public async getOrganizationOnboarding(org: string): Promise<OrganizationOnboarding | null> {
     return (await this.http.get(`/organizations/${encodeURIComponent(org)}/onboarding`, this.v1Config())).data
   }

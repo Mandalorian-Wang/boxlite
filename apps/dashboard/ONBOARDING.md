@@ -8,10 +8,12 @@ Answers and prompt drafts belong to the backend; credit delivery is confirmed in
 
 Scope: welcome, Quickstart, image templates, terminal auto-connect and persistence.
 Keep the existing empty Boxes page and main's network/authentication behavior. Exclude
-Billing restyling, Apps prototypes, first-run simulation, and fake terminal output.
+Billing restyling, Apps prototypes, and fake terminal output. Card verification is
+available separately as a development-only interaction preview; production credit
+delivery still uses the existing backend contract.
 
-Related work: the existing OrganizationController name endpoint owns organization updates;
-OrganizationActionGuard owns membership/owner checks. Reuse both. The signup-credit pending
+Related work: OrganizationActionGuard owns membership/owner checks. Organization setup
+combines the name update and terms acceptance in one transaction. The signup-credit pending
 query on main uses bounded backoff against coupon/register; reuse the delivery contract,
 not a timer as proof. Existing Quickstart examples own SDK execution; render their actual
 programs in steps instead of maintaining separate snippets. Existing handoff credentials
@@ -27,16 +29,23 @@ checks, production build and UI walkthrough. Document observed results before pu
 
 ## User flow and deployment
 
-1. A new account names its organization using the existing organization-name endpoint.
+1. A new account names its organization and explicitly accepts the current Terms of Service and acknowledges the Privacy Policy. Both official links open in new tabs; visiting a link does not toggle the checkbox. The combined organization-setup endpoint saves the name and acceptance atomically. A backend-confirmed acceptance skips repeat confirmation for the same user, organization and document versions; browser progress alone cannot establish acceptance. Failed submissions retain the name and checkbox state. Privacy preferences remain separate.
 2. Choose a use case and optionally describe it. Continue saves this answer on the organization, then polls signup-credit delivery with bounded backoff. Failures remain visible and can be retried, or the user can explicitly continue without credits. Installations without billing finish without polling; setup completion never implies a credit grant. The browser skip flag is written only on completion, and a confirmed organization rename survives a reload before intent submission.
 3. Quickstart offers SDK/CLI, console templates, or a prompt for a local coding agent. Console creation uses the selected public image, resource defaults and startup command. Existing Boxes empty-state content remains unchanged.
 4. Prompt text autosaves after one second and on blur, scoped to the organization and user. Refresh restores saved text. Prepare prompt saves a handoff snapshot; the following Copy prompt click writes directly to the clipboard without waiting on network requests. Editing the request requires preparation again. A failed copy acknowledgement can be retried separately from a successful copy; credentials are added only in the browser, never persisted in the snapshot. Copied status does not mean an application was deployed.
 
-Apply the additive API migration before releasing the dashboard. The organization use case and per-user draft endpoints must be deployed together with this UI. See [API persistence contract](../api/src/organization/ONBOARDING.md) for authorization, validation, revision conflicts and retention.
+Apply the additive API migrations before releasing the dashboard. Organization setup/terms, use-case and per-user draft endpoints must be available with this UI. If document versions change before submission, the checkbox resets and requires confirmation of the new versions. See [API persistence contract](../api/src/organization/ONBOARDING.md) for authorization, validation, revision conflicts and retention.
+
+The “Run tests or CI” use-case option keeps the persisted `code-execution` identifier for compatibility with saved onboarding selections and the existing SDK Quickstart recipe. Its onboarding and verification descriptions refer to tests and CI jobs.
 
 Public templates share their catalog with Images. Virtual and curated template rows are not removable from the catalog; an organization-owned image remains removable even if its reference matches a template; user-imported images retain their existing lifecycle. Public registry availability and runner architecture can change; this PR does not guarantee every future upstream tag remains available.
 
 ## UI comparison
+
+The [onboarding rework gallery](docs/onboarding-rework/README.md) covers organization
+terms acceptance, use-case selection, card confirmation and credit delivery. It
+describes the boundary between implemented backend persistence and the
+development-only card-verification flow.
 
 These screenshots use local development fixtures, not a production account. The walkthrough covered organization name, long-running-agent intent, credit confirmation, switching all three methods, and saving/restoring prompt text after refresh.
 

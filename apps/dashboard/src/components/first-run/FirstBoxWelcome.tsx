@@ -1,6 +1,6 @@
 /* Copyright 2026 BoxLite AI · SPDX-License-Identifier: AGPL-3.0 */
-import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { lazy, Suspense, useState } from 'react'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { AsciiButton } from '@/components/ascii'
 import { Check, ChevronRight, Code2, Terminal, Globe, Bot, Container, SparklesIcon } from '@/components/ui/icon'
 import { useApi } from '@/hooks/useApi'
@@ -9,9 +9,18 @@ import { useAuth } from 'react-oidc-context'
 import { useSelectedOrganization } from '@/hooks/useSelectedOrganization'
 import { useWelcomeOnboarding } from '@/hooks/useWelcomeOnboarding'
 import { RoutePath } from '@/enums/RoutePath'
-import { FIRST_RUN_USE_CASES, type FirstRunWelcome, type FirstRunUseCase } from '@/lib/first-run'
+import {
+  CARD_VERIFICATION_PREVIEW_KEY,
+  FIRST_RUN_USE_CASES,
+  type FirstRunWelcome,
+  type FirstRunUseCase,
+} from '@/lib/first-run'
 import { getLocalStorageItem } from '@/lib/local-storage'
 import FirstBoxAtmosphere from './FirstBoxAtmosphere'
+import WelcomeJourneyArtwork from './WelcomeJourneyArtwork'
+import type { OrganizationTerms } from '@/api/apiClient'
+
+const WelcomeCardVerificationDemo = lazy(() => import('./WelcomeCardVerificationDemo'))
 
 const USE_CASE_ICONS = {
   'coding-agent': Code2,
@@ -24,6 +33,11 @@ const USE_CASE_ICONS = {
 }
 
 export default function FirstBoxWelcome() {
+  const [params] = useSearchParams()
+  const cardVerificationPreview =
+    import.meta.env.DEV &&
+    import.meta.env.VITE_ENABLE_MOCKING === 'true' &&
+    params.get('preview') === 'card-verification'
   const { selectedOrganization } = useSelectedOrganization()
   const { user } = useAuth()
   const api = useApi()
@@ -33,65 +47,153 @@ export default function FirstBoxWelcome() {
     enabled: !!orgId,
     queryFn: () => api.getOrganizationOnboarding(orgId!),
   })
-  if (profile.isError)
+  const terms = useQuery({
+    queryKey: ['organization-terms', user?.profile.sub, orgId],
+    enabled: !!orgId && !!user?.profile.sub,
+    queryFn: () => api.getOrganizationTerms(orgId!),
+  })
+  if (profile.isError || terms.isError)
     return (
       <p role="alert" className="p-8">
-        Could not load your setup. <button onClick={() => void profile.refetch()}>Try again</button>
+        Could not load your setup.{' '}
+        <button
+          onClick={() => {
+            void profile.refetch()
+            void terms.refetch()
+          }}
+        >
+          Try again
+        </button>
       </p>
     )
-  if (!selectedOrganization || profile.isPending) return <p className="p-8">Loading your workspace…</p>
+  if (!selectedOrganization || profile.isPending || terms.isPending)
+    return <p className="p-8">Loading your organization…</p>
   let organizationSaved = false
   let completedAt: number | null = null
+  let previewProgress: Partial<FirstRunWelcome> = {}
   try {
-    const progress = JSON.parse(getLocalStorageItem(`boxlite:welcome:${user?.profile.sub}:${orgId}`) ?? 'null')
+    const prefix = cardVerificationPreview ? CARD_VERIFICATION_PREVIEW_KEY : 'boxlite:welcome'
+    const progress = JSON.parse(getLocalStorageItem(`${prefix}:${user?.profile.sub}:${orgId}`) ?? 'null')
     if (typeof progress?.completedAt === 'number' && Number.isFinite(progress.completedAt) && progress.completedAt > 0)
       completedAt = progress.completedAt
     organizationSaved = typeof progress?.organizationName === 'string' && !!progress.organizationName.trim()
+    if (cardVerificationPreview && progress) previewProgress = progress
   } catch {
     /* Invalid browser progress must not block first-time setup. */
   }
   const initial: FirstRunWelcome = {
-    organizationName: profile.data || organizationSaved ? selectedOrganization.name : '',
-    useCase: profile.data?.useCase ?? null,
-    note: profile.data?.note ?? '',
+    organizationName: cardVerificationPreview
+      ? organizationSaved
+        ? previewProgress.organizationName!
+        : ''
+      : profile.data || organizationSaved || terms.data.acceptedAt
+        ? selectedOrganization.name
+        : '',
+    useCase: cardVerificationPreview
+      ? (FIRST_RUN_USE_CASES.find((choice) => choice.id === previewProgress.useCase)?.id ?? null)
+      : (profile.data?.useCase ?? null),
+    note: cardVerificationPreview
+      ? typeof previewProgress.note === 'string'
+        ? previewProgress.note
+        : ''
+      : (profile.data?.note ?? ''),
     creditGrantedAt: null,
     completedAt,
   }
-  return <WelcomeForm key={`${user?.profile.sub}:${orgId}`} initial={initial} />
+  return (
+    <WelcomeForm
+      key={`${user?.profile.sub}:${orgId}:${cardVerificationPreview}`}
+      initial={initial}
+      cardVerificationPreview={cardVerificationPreview}
+      terms={terms.data}
+    />
+  )
 }
 
-function WelcomeForm({ initial }: { initial: FirstRunWelcome }) {
-  const { welcome, action, billingEnabled } = useWelcomeOnboarding(initial)
-  const [step, setStep] = useState<'organization' | 'intent'>(welcome.organizationName ? 'intent' : 'organization')
+function WelcomeForm({
+  initial,
+  cardVerificationPreview,
+  terms,
+}: {
+  initial: FirstRunWelcome
+  cardVerificationPreview: boolean
+  terms: OrganizationTerms
+}) {
+  const { welcome, action, billingEnabled } = useWelcomeOnboarding(initial, cardVerificationPreview)
+  const [step, setStep] = useState<'organization' | 'intent' | 'verify'>(
+    !terms.acceptedAt
+      ? 'organization'
+      : cardVerificationPreview && welcome.useCase
+        ? 'verify'
+        : welcome.organizationName
+          ? 'intent'
+          : 'organization',
+  )
+  const termsVersion = `${terms.termsVersion}:${terms.privacyVersion}`
+  const [checkedTermsVersion, setCheckedTermsVersion] = useState<string | null>(null)
+  const termsChecked = checkedTermsVersion === termsVersion
+  const termsAccepted = !!terms.acceptedAt || termsChecked
   const [name, setName] = useState(welcome.organizationName)
   const [useCase, setUseCase] = useState<FirstRunUseCase | null>(welcome.useCase)
   const [note, setNote] = useState(welcome.note)
   const [noteOpen, setNoteOpen] = useState(Boolean(welcome.note))
+  const [mainElement, setMainElement] = useState<HTMLElement | null>(null)
+  const [illustrationAnchor, setIllustrationAnchor] = useState<HTMLDivElement | null>(null)
   const error = action.isError
     ? action.error instanceof Error
       ? action.error.message
       : 'Could not save. Please try again.'
     : null
 
-  if (welcome.completedAt != null || welcome.creditGrantedAt !== null)
+  if (terms.acceptedAt && (welcome.completedAt != null || welcome.creditGrantedAt !== null))
     return <Navigate to={RoutePath.QUICKSTART} replace />
 
+  const verifyingCard = step === 'verify' && cardVerificationPreview
+
   return (
-    <FirstBoxAtmosphere>
-      <main className="mx-auto w-full max-w-[620px] px-6 pb-12 pt-10 font-display sm:pt-16">
+    <FirstBoxAtmosphere animated={!cardVerificationPreview}>
+      {cardVerificationPreview && (
+        <WelcomeJourneyArtwork
+          step={step}
+          selection={useCase}
+          mainElement={mainElement}
+          verificationAnchor={illustrationAnchor}
+        />
+      )}
+      <main
+        ref={setMainElement}
+        className={`mx-auto w-full px-6 pb-12 pt-10 font-display sm:pt-16 ${verifyingCard ? 'max-w-[1080px] lg:pt-20' : cardVerificationPreview ? 'max-w-[620px] min-[1180px]:max-w-[960px]' : 'max-w-[620px]'} ${cardVerificationPreview ? 'min-[1180px]:pt-20' : ''}`}
+      >
         <div
-          className="mb-8 flex items-center gap-3 font-mono text-label text-muted-foreground"
+          className={`flex items-center gap-3 font-mono text-label text-muted-foreground ${verifyingCard ? 'mb-10 lg:mb-16' : 'mb-8'} ${cardVerificationPreview && !verifyingCard ? 'welcome-journey-form' : ''}`}
           aria-label="Onboarding progress"
         >
           <span className={step === 'organization' ? 'text-foreground' : ''}>1 Organization</span>
           <span aria-hidden="true">/</span>
           <span className={step === 'intent' ? 'text-foreground' : ''}>2 Use case</span>
+          {cardVerificationPreview && (
+            <>
+              <span aria-hidden="true">/</span>
+              <span className={step === 'verify' ? 'text-foreground' : ''}>3 Verify card</span>
+            </>
+          )}
         </div>
         {step === 'organization' && (
           <form
+            className={cardVerificationPreview ? 'welcome-journey-form' : undefined}
             onSubmit={(event) => {
               event.preventDefault()
-              action.mutate({ type: 'organization', name }, { onSuccess: () => setStep('intent') })
+              if (!termsAccepted) return
+              action.mutate(
+                {
+                  type: 'organization',
+                  name,
+                  accepted: true,
+                  termsVersion: terms.termsVersion,
+                  privacyVersion: terms.privacyVersion,
+                },
+                { onSuccess: () => setStep('intent') },
+              )
             }}
           >
             <h1 className="font-display text-page font-semibold">Create your organization</h1>
@@ -108,16 +210,55 @@ function WelcomeForm({ initial }: { initial: FirstRunWelcome }) {
               onChange={(event) => setName(event.target.value)}
               maxLength={60}
               required
-              placeholder="e.g. Acme or Alex’s workspace"
+              placeholder="e.g. Acme or Alex"
               autoComplete="organization"
               className="h-12 w-full border border-border bg-card px-4 text-body outline-none focus:border-foreground/50"
             />
             <p className="mt-2 font-mono text-xs text-muted-foreground">You can change this later.</p>
+            {!terms.acceptedAt && (
+              <div className="mt-6 flex items-start gap-2.5 text-sm leading-6 text-muted-foreground">
+                <input
+                  id="welcome-terms"
+                  type="checkbox"
+                  checked={termsChecked}
+                  onChange={(event) => setCheckedTermsVersion(event.target.checked ? termsVersion : null)}
+                  disabled={action.isPending}
+                  aria-labelledby="welcome-terms-label"
+                  className="mt-1 size-4 shrink-0 cursor-pointer accent-foreground"
+                />
+                <span id="welcome-terms-label">
+                  <label htmlFor="welcome-terms" className="cursor-pointer">
+                    I agree to the{' '}
+                  </label>
+                  <a
+                    href="https://boxlite.ai/legal/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-foreground underline underline-offset-4"
+                  >
+                    Terms of Service
+                  </a>
+                  <label htmlFor="welcome-terms" className="cursor-pointer">
+                    {' '}
+                    and acknowledge the{' '}
+                  </label>
+                  <a
+                    href="https://boxlite.ai/legal/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-foreground underline underline-offset-4"
+                  >
+                    Privacy Policy
+                  </a>
+                  .
+                </span>
+              </div>
+            )}
             <AsciiButton
               type="submit"
               variant="primary"
               className="mt-8 h-11 w-full font-display"
-              disabled={!name.trim() || action.isPending}
+              disabled={!name.trim() || !termsAccepted || action.isPending}
             >
               {action.isPending ? 'Saving…' : 'Continue'}
             </AsciiButton>
@@ -125,18 +266,27 @@ function WelcomeForm({ initial }: { initial: FirstRunWelcome }) {
         )}
         {step === 'intent' && (
           <form
+            className={cardVerificationPreview ? 'welcome-journey-form' : undefined}
             onSubmit={(event) => {
               event.preventDefault()
-              if (useCase) action.mutate({ type: 'intent', useCase, note })
+              if (useCase)
+                action.mutate(
+                  { type: 'intent', useCase, note },
+                  {
+                    onSuccess: () => {
+                      if (cardVerificationPreview) setStep('verify')
+                    },
+                  },
+                )
             }}
           >
             <h1 className="font-display text-page font-semibold">What are you building?</h1>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">What would you like to use BoxLite for?</p>
-            <fieldset className="mt-7" disabled={action.isPending}>
+            <fieldset className={cardVerificationPreview ? 'mt-5' : 'mt-7'} disabled={action.isPending}>
               <legend className="sr-only">Use case</legend>
               <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 {FIRST_RUN_USE_CASES.filter((option) => option.id !== 'exploring').map((option) => {
-                  const Icon = USE_CASE_ICONS[option.id]
+                  const Icon = cardVerificationPreview && useCase === option.id ? Check : USE_CASE_ICONS[option.id]
                   return (
                     <label key={option.id} className="group relative cursor-pointer">
                       <input
@@ -153,16 +303,20 @@ function WelcomeForm({ initial }: { initial: FirstRunWelcome }) {
                           className={`size-4 shrink-0 transition-colors ${useCase === option.id ? 'text-brand' : 'text-muted-foreground group-hover:text-foreground'}`}
                         />
                         <span className="flex-1">{option.label}</span>
-                        <Check
-                          aria-hidden="true"
-                          className={`size-3.5 shrink-0 text-brand transition-opacity ${useCase === option.id ? 'opacity-100' : 'opacity-0'}`}
-                        />
+                        {!cardVerificationPreview && (
+                          <Check
+                            aria-hidden="true"
+                            className={`size-3.5 shrink-0 text-brand transition-opacity ${useCase === option.id ? 'opacity-100' : 'opacity-0'}`}
+                          />
+                        )}
                       </span>
                     </label>
                   )
                 })}
               </div>
-              <label className="mt-3 inline-flex cursor-pointer items-center gap-2 py-2">
+              <label
+                className={`inline-flex cursor-pointer items-center gap-2 ${cardVerificationPreview ? 'mt-2 py-1.5' : 'mt-3 py-2'}`}
+              >
                 <input
                   type="radio"
                   name="boxlite-use-case"
@@ -180,7 +334,11 @@ function WelcomeForm({ initial }: { initial: FirstRunWelcome }) {
                 />
               </label>
             </fieldset>
-            <details open={noteOpen} onToggle={(event) => setNoteOpen(event.currentTarget.open)} className="group mt-5">
+            <details
+              open={noteOpen}
+              onToggle={(event) => setNoteOpen(event.currentTarget.open)}
+              className={`group ${cardVerificationPreview ? 'mt-2' : 'mt-5'}`}
+            >
               <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 text-sm text-muted-foreground outline-offset-4 hover:text-foreground [&::-webkit-details-marker]:hidden">
                 <ChevronRight aria-hidden="true" className="size-3.5 transition-transform group-open:rotate-90" />
                 Add context <span className="ml-1 text-xs">(optional)</span>
@@ -198,7 +356,7 @@ function WelcomeForm({ initial }: { initial: FirstRunWelcome }) {
                 className="mt-3 w-full resize-y border border-border bg-card px-4 py-3 text-sm outline-none focus:border-foreground/50"
               />
             </details>
-            <div className="mt-8 flex items-center justify-between">
+            <div className={`flex items-center justify-between ${cardVerificationPreview ? 'mt-5' : 'mt-8'}`}>
               <button
                 type="button"
                 disabled={action.isPending}
@@ -217,20 +375,22 @@ function WelcomeForm({ initial }: { initial: FirstRunWelcome }) {
                 disabled={!useCase || action.isPending}
               >
                 {action.isPending
-                  ? billingEnabled
+                  ? billingEnabled && !cardVerificationPreview
                     ? 'Waiting for credits…'
                     : 'Saving…'
                   : action.isError
                     ? 'Try again'
-                    : 'Start quickstart'}
+                    : cardVerificationPreview
+                      ? 'Continue'
+                      : 'Start quickstart'}
               </AsciiButton>
             </div>
-            {billingEnabled && (
+            {billingEnabled && !cardVerificationPreview && (
               <p className="mt-3 text-right text-xs text-muted-foreground">
                 We’ll check your signup credits before opening Quickstart.
               </p>
             )}
-            {billingEnabled && action.isError && useCase && (
+            {billingEnabled && !cardVerificationPreview && action.isError && useCase && (
               <button
                 type="button"
                 className="mt-3 text-sm underline"
@@ -240,6 +400,18 @@ function WelcomeForm({ initial }: { initial: FirstRunWelcome }) {
               </button>
             )}
           </form>
+        )}
+        {step === 'verify' && cardVerificationPreview && (
+          <Suspense fallback={<p>Loading card verification…</p>}>
+            <WelcomeCardVerificationDemo
+              illustrationRef={setIllustrationAnchor}
+              useCase={welcome.useCase}
+              onBack={() => {
+                action.reset()
+                setStep('intent')
+              }}
+            />
+          </Suspense>
         )}
         {error && (
           <p role="alert" className="mt-4 text-xs text-destructive">

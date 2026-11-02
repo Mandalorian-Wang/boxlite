@@ -32,6 +32,7 @@ import {
   SavePromptDraftDto,
 } from '../dto/onboarding.dto'
 import { OnboardingService } from '../services/onboarding.service'
+import { OrganizationTermsDto, SaveOrganizationSetupDto } from '../dto/organization-terms.dto'
 
 @ApiTags('organizations')
 @ApiExtraModels(OnboardingDto, PromptDraftDto)
@@ -48,6 +49,25 @@ import { OnboardingService } from '../services/onboarding.service'
 )
 export class OnboardingController {
   constructor(private readonly service: OnboardingService) {}
+
+  @Get('onboarding/terms')
+  @ApiOperation({ operationId: 'getOrganizationTerms', summary: 'Read current terms and your acceptance' })
+  @ApiOkResponse({ type: OrganizationTermsDto })
+  getTerms(@Param('organizationId') org: string, @AuthContext() auth: UserContext) {
+    return this.service.getTerms(org, auth.userId)
+  }
+
+  @Put('onboarding/setup')
+  @RequiredOrganizationMemberRole(OrganizationMemberRole.OWNER)
+  @ApiOperation({ operationId: 'saveOrganizationSetup', summary: 'Save organization name and accept current terms' })
+  @ApiOkResponse({ type: OrganizationTermsDto })
+  saveSetup(
+    @Param('organizationId') org: string,
+    @AuthContext() auth: UserContext,
+    @Body() input: SaveOrganizationSetupDto,
+  ) {
+    return this.service.saveSetup(org, auth.userId, input)
+  }
 
   @Get('onboarding')
   @ApiOperation({ operationId: 'getOrganizationOnboarding', summary: 'Read organization onboarding answers' })
